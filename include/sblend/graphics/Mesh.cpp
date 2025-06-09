@@ -45,6 +45,49 @@ Mesh::Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_i
     glBindVertexArray(0);
 }
 
+Mesh::Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_indices, const std::vector<Texture> &_textures) : vertices(_vertices), indices(_indices),
+                                                                                                                                 textures(_textures)
+{
+    position = glm::vec3(0.f, 1.f, 0.f);
+    velocity = angles = glm::vec3(0.f);
+    scale = glm::vec3(0.5f);
+    color = glm::vec3(0.8f);
+    mass = 1.f;
+
+    metallic = roughness = ao = 0.5f;
+
+    renderMode = GL_TRIANGLES;
+
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
+    glGenVertexArrays(1, &vao);
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, tangent));
+
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, bitangent));
+
+    glBindVertexArray(0);
+}
+
 void Mesh::setVertices(const std::vector<Vertex> &_vertices)
 {
 
@@ -112,6 +155,32 @@ void Mesh::render(Shader &shader)
         shader.setInt("_texture", 0);
         glBindTexture(GL_TEXTURE_2D, texture);
     }
+
+    glBindVertexArray(vao);
+
+    glDrawElements(renderMode, indices.size(), GL_UNSIGNED_INT, nullptr);
+
+    glBindVertexArray(0);
+}
+
+void Mesh::renderForModelUse(Shader &shader, std::unordered_map<std::string, int> &count)
+{
+    shader.setFloat("material.shininess", 30.f);
+
+    for (int i = 0; i < textures.size(); ++i)
+    {
+        glActiveTexture(GL_TEXTURE0 + i);
+
+        if (textures[i].type == "normalTex")
+            shader.setInt("hasNormalTex", 1);
+        else
+            shader.setInt("hasNormalTex", 0);
+
+        shader.setInt(("material." + textures[i].type).c_str(), i);
+        glBindTexture(GL_TEXTURE_2D, textures[i].id);
+    }
+
+    glActiveTexture(GL_TEXTURE0);
 
     glBindVertexArray(vao);
 

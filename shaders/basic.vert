@@ -52,7 +52,7 @@ void main() {
     }
     
     TBN = mat3(T, B, N);
-    Normal = N; // Pentru fallback dacă nu folosești normal mapping
+    Normal = N; 
 
     FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
 }

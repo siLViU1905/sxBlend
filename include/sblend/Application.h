@@ -2,6 +2,7 @@
 #define __APPLICATION_H__
 #include "../GL/glad.h"
 #include "../GLFW/glfw3.h"
+#include "graphics/Model.h"
 #include "graphics/Shader.h"
 #include "graphics/Vertex.h"
 #include "Menu.h"
@@ -49,6 +50,8 @@ namespace sx
         static Application *application;
 
         MeshManager *meshes;
+
+        std::vector<Model> models;
 
         ShaderManager *shaders;
 

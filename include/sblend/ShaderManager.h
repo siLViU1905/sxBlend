@@ -9,9 +9,15 @@ namespace sx
     {
         static Shader basicShader;
 
+        static Shader modelBasicShader;
+
         static Shader lightningShader;
 
+        static Shader modelLightningShader;
+
         static Shader pbrLightningShader;
+
+        static Shader modelPbrLightningShader;
 
         static Shader shadowMapShader;
 

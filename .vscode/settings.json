@@ -74,6 +74,7 @@
         "stop_token": "cpp",
         "strstream": "cpp",
         "thread": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "unordered_set": "cpp"
     }
 }

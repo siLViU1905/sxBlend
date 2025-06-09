@@ -27,10 +27,17 @@ namespace std
   };
 }
 
+struct Texture
+{
+  uint32_t id;
+  std::string type;
+  bool load(const char *filepath, const std::string &type);
+};
 class Mesh
 {
   std::vector<Vertex> vertices;
   std::vector<uint32_t> indices;
+  std::vector<Texture> textures;
 
   glm::mat4 model;
 
@@ -38,6 +45,8 @@ class Mesh
 
 public:
   Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_indices, GLenum renderMode = GL_TRIANGLES);
+
+  Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_indices, const std::vector<Texture> &_textures);
 
   static std::unordered_map<MeshType, std::string> MeshTypesMap;
 
@@ -48,6 +57,8 @@ public:
   void setIndices(const std::vector<uint32_t> &_indices);
 
   void render(Shader &shader);
+
+  void renderForModelUse(Shader &shader, std::unordered_map<std::string, int>& count);
 
   int slices = 32, stacks = 16;
 
@@ -71,7 +82,7 @@ public:
 
   void getProperties(std::ostringstream &stream);
 
-  void applyTexture(const char* filepath);
+  void applyTexture(const char *filepath);
 
   ~Mesh();
 
@@ -90,5 +101,4 @@ public:
   friend class MeshManager;
   friend class Physics;
 };
-
 #endif // __MESH_H__

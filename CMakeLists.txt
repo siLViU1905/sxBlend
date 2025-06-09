@@ -35,6 +35,7 @@ set(SOURCE_FILES
     include/sblend/graphics/Light.cpp
     include/sblend/graphics/Shadow.cpp
     include/sblend/physics/PhysicsWorld.cpp
+    include/sblend/graphics/Model.cpp
     src/appMain.cpp
 )
 
@@ -56,6 +57,7 @@ if(WIN32)
     target_link_libraries(sBlend
         ${OPENGL_LIBRARIES}
         glfw3
+        assimp-vc143-mtd
     )
 elseif(APPLE)
     find_library(COCOA_LIBRARY Cocoa)

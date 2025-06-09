@@ -4,7 +4,9 @@
 #include "../imgui/imgui_impl_glfw.h"
 #include "../imgui/imgui_impl_opengl3.h"
 #include "../imgui/imfilebrowser.h"
+#include <string>
 #include <unordered_map>
+#include <vector>
 #include "graphics/Light.h"
 #include "graphics/Mesh.h"
 
@@ -77,6 +79,7 @@ namespace sx
     {
         bool meshBtnPressed = false;
         bool lightBtnPressed = false;
+        bool modelBtnPressed = false;
         MeshType selectedMesh = MeshType::NaN;
         LightType selectedLight = LightType::NaN;
 
@@ -104,6 +107,8 @@ namespace sx
 
         std::vector<std::string> existentLights;
 
+        std::vector<std::string> existentModels;
+
         ImGuiWindowFlags windowFlags;
 
         ImVec2 menuPos, menuSize;
@@ -112,9 +117,15 @@ namespace sx
 
         int selectedLightIndex;
 
+        int selectedModelIndex;
+
+        int modelCounter = 0;
+
         bool deleteObject;
 
         bool deleteLight;
+
+        bool deleteModel;
 
         bool newSphere, newCircle, newTorus;
 
@@ -132,6 +143,8 @@ namespace sx
 
         std::unordered_map<int, int> lightTypeCounter;
 
+        std::vector<unsigned char> selectedModelIndicator;
+
         ObjectMenu objectMenu;
 
         LightMenu lightMenu;
@@ -147,6 +160,10 @@ namespace sx
         bool setTexture = false;
 
         char texturePath[65];
+
+        bool loadModel = false;
+
+        char modelPath[65];
 
     protected:
         void render() override;
