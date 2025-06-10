@@ -7,9 +7,7 @@ std::unordered_map<int, std::string> Model::texType = {
     {aiTextureType_SPECULAR, "specularTex"},
     {aiTextureType_NORMALS, "normalTex"},
     {aiTextureType_DIFFUSE_ROUGHNESS, "roughnessTex"},
-    {aiTextureType_AMBIENT_OCCLUSION, "aoTex"}
-  };
-
+    {aiTextureType_AMBIENT_OCCLUSION, "aoTex"}};
 
 std::unordered_map<std::string, int> Model::loadedTextures;
 
@@ -102,8 +100,8 @@ void Model::proccesMesh(aiMesh *mesh, const aiScene *scene)
   {
     aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 
-   for(const auto& type:types)
-     loadMaterialTextures(material, type);
+    for (const auto &type : types)
+      loadMaterialTextures(material, type);
   }
 
   meshes.emplace_back(vertices, indices, textures);
@@ -147,6 +145,18 @@ Model::Model(const char *path)
   color = glm::vec3(0.8f);
   metallic = roughness = ao = 0.5f;
   loadModel(path);
+}
+
+const glm::mat4 &Model::getModel()
+{
+  model = glm::mat4(1.f);
+  model = glm::translate(model, position);
+  model = glm::rotate(model, glm::radians(angles.x), glm::vec3(1.f, 0.f, 0.f));
+  model = glm::rotate(model, glm::radians(angles.y), glm::vec3(0.f, 1.f, 0.f));
+  model = glm::rotate(model, glm::radians(angles.z), glm::vec3(0.f, 0.f, 1.f));
+  model = glm::scale(model, scale);
+
+  return model;
 }
 
 void Model::render(Shader &shader)

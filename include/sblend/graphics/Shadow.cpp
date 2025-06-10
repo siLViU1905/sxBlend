@@ -30,6 +30,12 @@ namespace sx
         shadowMapShader->setMat4("model", mesh.getModel());
         mesh.render(*shadowMapShader);
     }
+    
+    void Shadow::apply_to_model(Model& model)
+    {
+        shadowMapShader->setMat4("model", model.getModel());
+        model.render(*shadowMapShader);
+    }
 
     void Shadow::setLightProjection(const glm::mat4 &proj)
     {

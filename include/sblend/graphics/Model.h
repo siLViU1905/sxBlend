@@ -60,6 +60,8 @@ public:
   glm::vec3 angles;
   glm::vec3 color;
 
+  const glm::mat4& getModel();
+
   float metallic;
   float roughness;
   float ao;

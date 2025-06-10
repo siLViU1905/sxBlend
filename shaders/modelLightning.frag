@@ -22,42 +22,6 @@ struct Light
 uniform Light light[6];
 uniform int lightCount;
 
-in vec4 FragPosLightSpace;
-uniform sampler2D shadowMap;
-
-float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
-{
-    // Transformă coordonatele în spațiul texturii
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords = projCoords * 0.5 + 0.5;
-
-    // Verifică dacă coordonatele sunt în afara texturii shadow map
-    if(projCoords.z > 1.0 || projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0)
-    {
-        return 0.0;
-    }
-
-    float currentDepth = projCoords.z;
-
-    // Bias pentru combaterea shadow acne
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-
-    // Percentage-Closer Filtering (PCF)
-    float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-    for(int x = -1; x <= 1; ++x)
-    {
-        for(int y = -1; y <= 1; ++y)
-        {
-            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-        }
-    }
-    shadow /= 9.0;
-
-    return shadow;
-}
-
 vec3 calculateDiffuse(vec3 normal, vec3 lightDir, vec3 lightDiffuse, vec3 materialDiffuse)
 {
     float diff = max(dot(normal, lightDir), 0.0);
@@ -76,6 +40,40 @@ float calculateAttenuation(float distance, float constant, float linear, float q
     return 1.0 / (constant + linear * distance + quadratic * (distance * distance));
 }
 
+in vec4 FragPosLightSpace;
+uniform sampler2D shadowMap;
+
+
+float calculateShadow(vec4 fpls)
+{
+    vec3 projCoords = fpls.xyz / fpls.w;
+
+    projCoords = projCoords * 0.5 + 0.5;
+
+    if(projCoords.x < 0.0 || projCoords.x > 1.0 ||
+        projCoords.y < 0.0 || projCoords.y > 1.0 ||
+        projCoords.z < 0.0 || projCoords.z > 1.0)
+        return 0.0;
+
+    float currentDepth = projCoords.z;
+
+    vec3 lightDir = normalize(light[0].position - FragPos);
+    float bias = max(0.05 * (1.0 - dot(Normal, lightDir)), 0.005);
+
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for(int x = -3; x <= 3; ++x)
+    {
+        for(int y = -3; y <= 3; ++y)
+        {
+            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+    }
+    shadow /= 49.0;
+
+    return shadow;
+}
 struct Material
 {
     sampler2D diffuseTex;
@@ -100,6 +98,11 @@ void main()
 
     vec3 ambient = light[0].ambient * materialDiffuse;
     vec3 lighting = ambient;
+
+    float shadow = 0.0;
+
+    if(useShadows == 1)
+      shadow = calculateShadow(FragPosLightSpace);
 
     vec3 normal;
 
@@ -130,6 +133,8 @@ void main()
 
         lighting += lightContribution;
     }
+
+    lighting *= (1.0 - shadow);
 
     FragColor = vec4(lighting, 1.0);
 }

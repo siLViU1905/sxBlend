@@ -266,6 +266,8 @@ namespace sx
           glDeleteBuffers(1, &delMesh.vbo);
           glDeleteBuffers(1, &delMesh.ebo);
           glDeleteVertexArrays(1, &delMesh.vao);
+          for (auto &tex : delMesh.textures)
+            glDeleteTextures(1, &tex.id);
         }
         models.erase(models.begin() + mainMenu.selectedModelIndex);
         mainMenu.existentModels.erase(mainMenu.existentModels.begin() +
@@ -538,6 +540,10 @@ namespace sx
     shaders->basicShader.setVec3("camera.position", camera.getPosition());
     shaders->basicShader.setInt("useShadows", 0);
 
+    shaders->lightningShader.setInt("useShadows", 0);
+    shaders->modelBasicShader.setInt("useShadows", 0);
+    shaders->modelLightningShader.setInt("useShadows", 0);
+
     shaders->modelBasicShader.setMat4("projection", projection);
     shaders->modelBasicShader.setMat4("camera.view", camera.getView());
     shaders->modelBasicShader.setVec3("camera.position", camera.getPosition());
@@ -577,12 +583,12 @@ namespace sx
       shaders->modelPbrLightningShader.setMat4("projection", projection);
       shaders->modelPbrLightningShader.setMat4("camera.view", camera.getView());
       shaders->modelPbrLightningShader.setVec3("camera.position",
-                                          camera.getPosition());
+                                               camera.getPosition());
 
       for (int i = 0; i < lights.lights.size(); ++i)
       {
         lights.lights[i].apply_to_shader(shaders->pbrLightningShader, i);
-        lights.lights[i].apply_to_shader(shaders->modelPbrLightningShader,i);
+        lights.lights[i].apply_to_shader(shaders->modelPbrLightningShader, i);
       }
 
       for (auto &m : meshes->meshes)
@@ -641,6 +647,9 @@ namespace sx
 
     shaders->basicShader.setInt("useShadows", 1);
 
+    shaders->lightningShader.setInt("useShadows", 1);
+    shaders->modelLightningShader.setInt("useShadows", 1);
+
     shadow->lightView = glm::lookAt(lights.lights.front().position,
                                     glm::vec3(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -648,6 +657,9 @@ namespace sx
 
     for (Mesh &mesh : meshes->meshes)
       shadow->apply_to_mesh(mesh);
+
+    for (Model &model : models)
+      shadow->apply_to_model(model);
 
     shadow->shadowMode(false, WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -663,6 +675,10 @@ namespace sx
 
     shadow->apply_shadow_texture(shaders->basicShader);
 
+    shadow->apply_shadow_texture(shaders->lightningShader);
+
+    shadow->apply_shadow_texture(shaders->modelLightningShader);
+
     grid->render(shaders->basicShader);
     gridLines->render(shaders->basicShader);
 
@@ -672,11 +688,21 @@ namespace sx
       shaders->lightningShader.setMat4("camera.view", camera.getView());
       shaders->lightningShader.setVec3("camera.position", camera.getPosition());
 
+      shaders->modelLightningShader.setMat4("projection", projection);
+      shaders->modelLightningShader.setMat4("camera.view", camera.getView());
+      shaders->modelLightningShader.setVec3("camera.position",
+                                            camera.getPosition());
+
       for (int i = 0; i < lights.lights.size(); ++i)
+      {
         lights.lights[i].apply_to_shader(shaders->lightningShader, i);
+        lights.lights[i].apply_to_shader(shaders->modelLightningShader, i);
+      }
 
       for (auto &m : meshes->meshes)
         m.render(shaders->lightningShader);
+      for (auto &m : models)
+        m.render(shaders->modelLightningShader);
     }
     else if (mainMenu.usePbrLightShader)
     {
@@ -685,15 +711,22 @@ namespace sx
       shaders->pbrLightningShader.setVec3("camera.position",
                                           camera.getPosition());
 
+      shaders->modelPbrLightningShader.setMat4("projection", projection);
+      shaders->modelPbrLightningShader.setMat4("camera.view", camera.getView());
+      shaders->modelPbrLightningShader.setVec3("camera.position",
+                                               camera.getPosition());
+
       for (int i = 0; i < lights.lights.size(); ++i)
+      {
         lights.lights[i].apply_to_shader(shaders->pbrLightningShader, i);
+        lights.lights[i].apply_to_shader(shaders->modelPbrLightningShader, i);
+      }
 
       for (auto &m : meshes->meshes)
         m.render(shaders->pbrLightningShader);
+      for (auto &m : models)
+        m.render(shaders->modelPbrLightningShader);
     }
-    else
-      for (auto &m : meshes->meshes)
-        m.render(shaders->basicShader);
 
     newMenuFrame();
 
@@ -865,6 +898,8 @@ namespace sx
         glDeleteBuffers(1, &mesh.vbo);
         glDeleteBuffers(1, &mesh.ebo);
         glDeleteVertexArrays(1, &mesh.vao);
+        for (auto &tex : mesh.textures)
+          glDeleteTextures(1, &tex.id);
       }
 
     delete application->meshes;

@@ -38,7 +38,6 @@ uniform Material material;
 
 const float PI = 3.14159265359;
 
-// PBR functions
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);

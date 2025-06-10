@@ -37,7 +37,7 @@ class Mesh
 {
   std::vector<Vertex> vertices;
   std::vector<uint32_t> indices;
-  std::vector<Texture> textures;
+  
 
   glm::mat4 model;
 
@@ -59,6 +59,8 @@ public:
   void render(Shader &shader);
 
   void renderForModelUse(Shader &shader, std::unordered_map<std::string, int>& count);
+
+  std::vector<Texture> textures;
 
   int slices = 32, stacks = 16;
 
