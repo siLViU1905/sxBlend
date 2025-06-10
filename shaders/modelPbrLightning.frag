@@ -17,123 +17,17 @@ struct Light
 uniform Light light[6];
 uniform int lightCount;
 
-uniform vec3 albedoColor;
-uniform float metallic;
-uniform float roughness;
-uniform float ao;
-
 uniform vec3 camPos;
 
-// Material textures
 struct Material
 {
-    sampler2D albedoTex;
+    sampler2D metalicTex;
     sampler2D normalTex;
-    sampler2D metallicTex;
-    sampler2D roughnessTex;
-    sampler2D aoTex;
 };
 uniform Material material;
 
-
 const float PI = 3.14159265359;
 
-float DistributionGGX(vec3 N, vec3 H, float roughness);
-float GeometrySchlickGGX(float NdotV, float roughness);
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
-vec3 FresnelSchlick(float cosTheta, vec3 F0);
-vec3 FresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
-vec3 CalculateLight(Light light, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness);
-vec3 GetNormalFromMap();
-
-out vec4 FragColor;
-
-void main()
-{
-    // Get material properties from textures or uniforms
-    vec3 albedo = texture(material.albedoTex, TexCoords).rgb;
-    float metallicVal = texture(material.metallicTex, TexCoords).r;
-    float roughnessVal = texture(material.roughnessTex, TexCoords).r;
-    float aoVal = texture(material.aoTex, TexCoords).r;
-
-    // Normal vector
-    vec3 N = normalize(Normal);
-    vec3 V = normalize(camPos - WorldPos);
-    vec3 R = reflect(-V, N); 
-
-    // Calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
-    // of 0.04 and if it's metal, use the albedo color as F0
-    vec3 F0 = vec3(0.04);
-    F0 = mix(F0, albedo, metallicVal);
-
-    // Reflectance equation
-    vec3 Lo = vec3(0.0);
-    for(int i = 0; i < lightCount; ++i)
-    {
-        Lo += CalculateLight(light[i], V, N, F0, albedo, metallicVal, roughnessVal);
-    }
-
-    // Ambient lighting (we now use IBL as the ambient term)
-    vec3 F = FresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughnessVal);
-    vec3 kD = (1.0 - F) * (1.0 - metallicVal);
-    vec3 irradiance = vec3(0.03); // Simple ambient term - replace with IBL in real implementation
-    vec3 diffuse = irradiance * albedo;
-    vec3 ambient = (kD * diffuse) * aoVal;
-
-    vec3 color = ambient + Lo;
-
-    // HDR tonemapping
-    color = color / (color + vec3(1.0));
-    // Gamma correct
-    color = pow(color, vec3(1.0 / 2.2));
-
-    FragColor = vec4(color, 1.0);
-}
-
-// PBR lighting calculation for a single light
-vec3 CalculateLight(Light light, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness)
-{
-    vec3 L = vec3(0.0);
-    vec3 H = vec3(0.0);
-    float attenuation = 1.0;
-
-    L = normalize(light.position - WorldPos);
-    float distance = length(light.position - WorldPos);
-    attenuation = 1.0 / (distance * distance);
-
-    H = normalize(V + L);
-
-    // Radiance
-    vec3 radiance = light.color * light.intensity * attenuation;
-
-    // Cook-Torrance BRDF
-    float NDF = DistributionGGX(N, H, roughness);
-    float G = GeometrySmith(N, V, L, roughness);
-    vec3 F = FresnelSchlick(max(dot(H, V), 0.0), F0);
-
-    vec3 numerator = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-    vec3 specular = numerator / denominator;
-
-    // kS is equal to Fresnel
-    vec3 kS = F;
-    // For energy conservation, the diffuse and specular light can't
-    // be above 1.0 (unless the surface emits light); to preserve this
-    // relationship the diffuse component (kD) should equal 1.0 - kS.
-    vec3 kD = vec3(1.0) - kS;
-    // Multiply kD by the inverse metalness such that only non-metals 
-    // have diffuse lighting, or a linear blend if partly metal (pure metals
-    // have no diffuse light).
-    kD *= 1.0 - metallic;
-
-    // Scale light by NdotL
-    float NdotL = max(dot(N, L), 0.0);
-
-    // Add to outgoing radiance Lo
-    return (kD * albedo / PI + specular) * radiance * NdotL;
-}
-
-// Normal Distribution function
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
     float a = roughness * roughness;
@@ -148,7 +42,6 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
     return nom / denom;
 }
 
-// Geometry function
 float GeometrySchlickGGX(float NdotV, float roughness)
 {
     float r = (roughness + 1.0);
@@ -170,21 +63,66 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
-// Fresnel function
 vec3 FresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-// Fresnel function with roughness
 vec3 FresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-// Get normal from normal map
 vec3 GetNormalFromMap()
 {
     vec3 tangentNormal = texture(material.normalTex, TexCoords).xyz * 2.0 - 1.0;
     return normalize(TBN * tangentNormal);
+}
+
+vec3 CalculateLight(Light light, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness)
+{
+    vec3 L = normalize(light.position - WorldPos);
+    vec3 H = normalize(V + L);
+    float attenuation = 1.0;
+
+    float distance = length(light.position - WorldPos);
+    attenuation = 1.0 / (distance * distance);
+
+    float NDF = DistributionGGX(N, H, roughness);
+    float G = GeometrySmith(N, V, L, roughness);
+    vec3 F = FresnelSchlick(max(dot(H, V), 0.0), F0);
+
+    vec3 numerator = NDF * G * F;
+    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+    vec3 specular = numerator / denominator;
+
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+
+    kD *= 1.0 - metallic;
+
+    float NdotL = max(dot(N, L), 0.0);
+
+    return (kD * albedo / PI + specular) * NdotL;
+}
+
+uniform vec3 aColor;
+uniform float roughness;
+out vec4 FragColor;
+
+void main()
+{
+    vec3 viewDir = normalize(ViewPos - FragPos);
+
+    float metallic = texture(material.metalicTex, TexCoords).r;
+
+    vec3 N = GetNormalFromMap();
+    vec3 V = normalize(camPos - WorldPos);
+
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, aColor, metallic);
+
+    vec3 Lo = vec3(0.0);
+    for(int i=0;i<lightCount;++i)
+    Lo += CalculateLight(light[i], V, N, F0, aColor, metallic, roughness);
 }

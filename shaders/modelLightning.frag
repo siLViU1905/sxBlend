@@ -40,6 +40,15 @@ float calculateAttenuation(float distance, float constant, float linear, float q
     return 1.0 / (constant + linear * distance + quadratic * (distance * distance));
 }
 
+vec2 calculateParallaxCoords(vec3 viewDir, vec4 heightMap)
+{
+    float height = heightMap.r;
+
+    vec2 p = viewDir.xy / viewDir.z *height;
+
+    return TexCoords - p;
+}
+
 in vec4 FragPosLightSpace;
 uniform sampler2D shadowMap;
 
@@ -79,6 +88,8 @@ struct Material
     sampler2D diffuseTex;
     sampler2D specularTex;
     sampler2D normalTex;
+    sampler2D emissiveTex;
+    sampler2D heightTex;
     float shininess;
 };
 
@@ -87,14 +98,24 @@ uniform Material material;
 uniform int useShadows;
 
 uniform int hasNormal;
+uniform int hasHeightTex;
 
 void main()
 {
 
     vec3 viewDir = normalize(ViewPos - FragPos);
 
-    vec3 materialDiffuse = texture(material.diffuseTex, TexCoords).rgb;
-    vec3 materialSpecular = texture(material.specularTex, TexCoords).rgb;
+    vec2 pTexCoords = TexCoords;
+
+    if(hasHeightTex == 1)
+    {
+        vec3 viewDirTangentSpace = transpose(TBN) * viewDir;
+        pTexCoords = calculateParallaxCoords(viewDirTangentSpace, texture(material.heightTex, TexCoords));
+    }
+
+
+    vec3 materialDiffuse = texture(material.diffuseTex, pTexCoords).rgb;
+    vec3 materialSpecular = texture(material.specularTex, pTexCoords).rgb;
 
     vec3 ambient = light[0].ambient * materialDiffuse;
     vec3 lighting = ambient;
@@ -116,6 +137,7 @@ void main()
         normal = normalize(TBN * tangentNormal);
     }
 
+
     for(int i = 0; i < lightCount; i++)
     {
         vec3 lightDir = normalize(light[i].position - FragPos);
@@ -135,6 +157,8 @@ void main()
     }
 
     lighting *= (1.0 - shadow);
+
+    lighting += texture(material.emissiveTex, TexCoords).rgb;
 
     FragColor = vec4(lighting, 1.0);
 }

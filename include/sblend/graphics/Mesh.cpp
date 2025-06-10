@@ -163,7 +163,7 @@ void Mesh::render(Shader &shader)
     glBindVertexArray(0);
 }
 
-void Mesh::renderForModelUse(Shader &shader, std::unordered_map<std::string, int> &count)
+void Mesh::renderForModelUse(Shader &shader)
 {
     shader.setFloat("material.shininess", 30.f);
 
@@ -175,6 +175,11 @@ void Mesh::renderForModelUse(Shader &shader, std::unordered_map<std::string, int
             shader.setInt("hasNormalTex", 1);
         else
             shader.setInt("hasNormalTex", 0);
+
+        if (textures[i].type == "heightTex")
+            shader.setInt("hasHeightTex", 1);
+        else
+            shader.setInt("hasHeightTex", 0);
 
         shader.setInt(("material." + textures[i].type).c_str(), i);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);

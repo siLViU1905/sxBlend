@@ -181,7 +181,7 @@ namespace sx
         lights.lights.emplace_back(LightType::PBR);
         mainMenu.selectedLight = LightType::NaN;
         shaders->pbrLightningShader.setInt("lightCount", ++pbrLightCount);
-        shaders->modelPbrLightningShader.setInt("lightCount", ++pbrLightCount);
+        shaders->modelPbrLightningShader.setInt("lightCount", pbrLightCount);
         break;
       }
     }

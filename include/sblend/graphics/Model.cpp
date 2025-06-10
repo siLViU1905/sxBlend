@@ -7,7 +7,11 @@ std::unordered_map<int, std::string> Model::texType = {
     {aiTextureType_SPECULAR, "specularTex"},
     {aiTextureType_NORMALS, "normalTex"},
     {aiTextureType_DIFFUSE_ROUGHNESS, "roughnessTex"},
-    {aiTextureType_AMBIENT_OCCLUSION, "aoTex"}};
+    {aiTextureType_AMBIENT_OCCLUSION, "aoTex"},
+    {aiTextureType_EMISSIVE, "emissiveTex"},
+    {aiTextureType_HEIGHT, "heightTex"},
+    {aiTextureType_METALNESS, "metalicTex"}
+};
 
 std::unordered_map<std::string, int> Model::loadedTextures;
 
@@ -137,7 +141,7 @@ void Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type)
   }
 }
 
-Model::Model(const char *path): path(path)
+Model::Model(const char *path) : path(path)
 {
   model = glm::mat4(1.f);
   velocity = angles = position = glm::vec3(0.f);
@@ -177,7 +181,7 @@ void Model::render(Shader &shader)
   shader.setFloat("ao", ao);
 
   for (Mesh &mesh : meshes)
-    mesh.renderForModelUse(shader, texCount);
+    mesh.renderForModelUse(shader);
 }
 
 void Model::getProperties(std::ostringstream &stream)
@@ -185,7 +189,7 @@ void Model::getProperties(std::ostringstream &stream)
   stream.clear();
   stream.str("");
 
-  stream << path <<'\n';
+  stream << path << '\n';
 
   stream << position.x << ' ' << position.y << ' ' << position.z << '\n';
   stream << velocity.x << ' ' << velocity.y << ' ' << velocity.z << '\n';
@@ -206,8 +210,7 @@ bool Texture::load(const char *filepath, const std::string &type)
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                  GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   stbi_set_flip_vertically_on_load(1);
@@ -224,6 +227,10 @@ bool Texture::load(const char *filepath, const std::string &type)
       format = GL_RED;
       break;
 
+    case 2:
+      format = GL_RG;
+      break;
+
     case 3:
       format = GL_RGB;
       break;
@@ -233,8 +240,7 @@ bool Texture::load(const char *filepath, const std::string &type)
       break;
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
-                 GL_UNSIGNED_BYTE, pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,GL_UNSIGNED_BYTE, pixels);
     glGenerateMipmap(GL_TEXTURE_2D);
   }
   else

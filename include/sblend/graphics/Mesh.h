@@ -58,7 +58,7 @@ public:
 
   void render(Shader &shader);
 
-  void renderForModelUse(Shader &shader, std::unordered_map<std::string, int>& count);
+  void renderForModelUse(Shader &shader);
 
   std::vector<Texture> textures;
 

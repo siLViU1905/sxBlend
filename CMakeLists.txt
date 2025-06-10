@@ -5,6 +5,10 @@ project(sBlend)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
+if(MSVC AND CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_compile_options(/O2 /fp:fast /arch:AVX2)
+endif()
+
 # Set directories
 set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 set(LIB_DIR "${CMAKE_SOURCE_DIR}/lib")
