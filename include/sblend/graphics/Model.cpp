@@ -137,7 +137,7 @@ void Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type)
   }
 }
 
-Model::Model(const char *path)
+Model::Model(const char *path): path(path)
 {
   model = glm::mat4(1.f);
   velocity = angles = position = glm::vec3(0.f);
@@ -178,6 +178,23 @@ void Model::render(Shader &shader)
 
   for (Mesh &mesh : meshes)
     mesh.renderForModelUse(shader, texCount);
+}
+
+void Model::getProperties(std::ostringstream &stream)
+{
+  stream.clear();
+  stream.str("");
+
+  stream << path <<'\n';
+
+  stream << position.x << ' ' << position.y << ' ' << position.z << '\n';
+  stream << velocity.x << ' ' << velocity.y << ' ' << velocity.z << '\n';
+  stream << scale.x << ' ' << scale.y << ' ' << scale.z << '\n';
+  stream << angles.x << ' ' << angles.y << ' ' << angles.z << '\n';
+  stream << color.x << ' ' << color.y << ' ' << color.z << '\n';
+  stream << metallic << '\n';
+  stream << roughness << '\n';
+  stream << ao << '\n';
 }
 
 bool Texture::load(const char *filepath, const std::string &type)

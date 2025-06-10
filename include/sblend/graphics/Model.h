@@ -60,6 +60,8 @@ public:
   glm::vec3 angles;
   glm::vec3 color;
 
+    std::string path;
+
   const glm::mat4& getModel();
 
   float metallic;
@@ -67,5 +69,7 @@ public:
   float ao;
 
   void render(Shader &shader);
+
+    void getProperties(std::ostringstream& stream);
 };
 #endif // __MODEL_H__

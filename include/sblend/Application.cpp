@@ -332,6 +332,11 @@ namespace sx
         light.getProperties(saveProperties);
         outputFile << saveProperties.str() << '\n';
       }
+      outputFile << "MODELS\n";
+      for (Model &model : models) {
+        model.getProperties(saveProperties);
+        outputFile << saveProperties.str() << '\n';
+      }
       outputFile << "Scene\n";
       mainMenu.getProperties(saveProperties);
       outputFile << saveProperties.str() << '\n';
@@ -433,7 +438,7 @@ namespace sx
           meshes->meshes.back().slices = slices;
           meshes->meshes.back().stacks = stacks;
         }
-        while (inputFile >> ty && ty != "Scene")
+        while (inputFile >> ty && ty != "MODELS")
         {
           LightType lightty;
           lightty = Light::LightStringMap[ty];
@@ -465,6 +470,18 @@ namespace sx
                 std::to_string(mainMenu.lightTypeCounter[(int)lightty]));
           mainMenu.selectedLightIndicator.emplace_back(0);
           mainMenu.lightTypeCounter[(int)lightty]++;
+        }
+        while (inputFile >> ty && ty != "Scene")
+        {
+          models.emplace_back(ty.c_str());
+          inputFile >> models.back().position.x >> models.back().position.y >> models.back().position.z;
+          inputFile >> models.back().velocity.x >> models.back().velocity.y >> models.back().velocity.z;
+          inputFile >> models.back().scale.x >> models.back().scale.y >> models.back().scale.z;
+          inputFile >> models.back().angles.x >> models.back().angles.y >> models.back().angles.z;
+          inputFile >> models.back().color.x >> models.back().color.y >> models.back().color.z;
+          inputFile >> models.back().metallic;
+          inputFile >> models.back().roughness;
+          inputFile >> models.back().ao;
         }
         inputFile >> mainMenu.useLightShader;
         inputFile >> mainMenu.usePbrLightShader;
