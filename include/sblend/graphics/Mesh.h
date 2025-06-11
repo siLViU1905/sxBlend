@@ -7,100 +7,105 @@
 
 enum class MeshType
 {
-  NaN,
-  PLANE,
-  CIRCLE,
-  CUBE,
-  SPHERE,
-  TORUS
+    NaN,
+    PLANE,
+    CIRCLE,
+    CUBE,
+    SPHERE,
+    TORUS
 };
 
 namespace std
 {
-  template <>
-  struct hash<MeshType>
-  {
-    size_t operator()(const MeshType &mt) const
+    template<>
+    struct hash<MeshType>
     {
-      return static_cast<size_t>(mt);
-    }
-  };
+        size_t operator()(const MeshType &mt) const
+        {
+            return static_cast<size_t>(mt);
+        }
+    };
 }
 
 struct Texture
 {
-  uint32_t id;
-  std::string type;
-  bool load(const char *filepath, const std::string &type);
+    uint32_t id;
+    std::string type;
+
+    bool load(const char *filepath, const std::string &type);
 };
+
 class Mesh
 {
-  std::vector<Vertex> vertices;
-  std::vector<uint32_t> indices;
-  
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
 
-  glm::mat4 model;
 
-  GLenum renderMode;
+    glm::mat4 model;
+
+    GLenum renderMode;
 
 public:
-  Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_indices, GLenum renderMode = GL_TRIANGLES);
+    Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_indices, GLenum renderMode = GL_TRIANGLES);
 
-  Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_indices, const std::vector<Texture> &_textures);
+    Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_indices,
+         const std::vector<Texture> &_textures);
 
-  static std::unordered_map<MeshType, std::string> MeshTypesMap;
+    static std::unordered_map<MeshType, std::string> MeshTypesMap;
 
-  static std::unordered_map<std::string, MeshType> MeshStringMap;
+    static std::unordered_map<std::string, MeshType> MeshStringMap;
 
-  void setVertices(const std::vector<Vertex> &_vertices);
+    void setVertices(const std::vector<Vertex> &_vertices);
 
-  void setIndices(const std::vector<uint32_t> &_indices);
+    void setIndices(const std::vector<uint32_t> &_indices);
 
-  void render(Shader &shader);
+    void render(Shader &shader);
 
-  void renderForModelUse(Shader &shader);
+    void renderForModelUse(Shader &shader);
 
-  std::vector<Texture> textures;
+    std::vector<Texture> textures;
 
-  int slices = 32, stacks = 16;
+    int slices = 32, stacks = 16;
 
-  MeshType type;
+    MeshType type;
 
-  glm::vec3 position;
-  glm::vec3 scale;
-  glm::vec3 angles;
-  glm::vec3 color;
+    glm::vec3 position;
+    glm::vec3 scale;
+    glm::vec3 angles;
+    glm::vec3 color;
 
-  float metallic;
-  float roughness;
-  float ao;
+    float metallic;
+    float roughness;
+    float ao;
 
-  bool hasTexture = false;
+    bool hasTexture = false;
 
-  uint32_t vbo, vao, ebo;
-  uint32_t texture = 0;
+    bool isReflective;
 
-  const glm::mat4 &getModel();
+    uint32_t vbo, vao, ebo;
+    uint32_t texture = 0;
 
-  void getProperties(std::ostringstream &stream);
+    const glm::mat4 &getModel();
 
-  void applyTexture(const char *filepath);
+    void getProperties(std::ostringstream &stream);
 
-  ~Mesh();
+    void applyTexture(const char *filepath);
 
-  float mass;
+    ~Mesh();
 
-  glm::vec3 velocity;
+    float mass;
 
-  const std::vector<Vertex> &getVertices() const;
+    glm::vec3 velocity;
 
-  const glm::vec3 &getPosition() const;
+    const std::vector<Vertex> &getVertices() const;
 
-  void setPosition(const glm::vec3 &position);
+    const glm::vec3 &getPosition() const;
 
-  void move(const glm::vec3 &offset);
+    void setPosition(const glm::vec3 &position);
 
-  friend class MeshManager;
-  friend class Physics;
+    void move(const glm::vec3 &offset);
+
+    friend class MeshManager;
+    friend class Physics;
 };
 #endif // __MESH_H__

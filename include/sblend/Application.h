@@ -14,10 +14,10 @@
 #include "graphics/Shadow.h"
 #include <fstream>
 #include "physics/PhysicsWorld.h"
+#include  "graphics/Reflection.h"
 
 namespace sx
 {
-
     typedef GLFWwindow *Window;
 
     class Application
@@ -77,6 +77,8 @@ namespace sx
 
         Shadow *shadow;
 
+        Reflection *reflection;
+
         Physics physicsWorld;
 
         void updatePhysics();
@@ -89,9 +91,11 @@ namespace sx
 
     public:
         Application(const Application &app) = delete;
+
         Application(Application &&app) = delete;
 
         Application &operator=(const Application &app) = delete;
+
         Application &operator=(Application &&app) = delete;
 
         void run();

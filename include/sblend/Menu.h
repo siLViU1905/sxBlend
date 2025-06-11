@@ -127,6 +127,8 @@ namespace sx
 
         bool deleteModel;
 
+        bool setReflective;
+
         bool newSphere, newCircle, newTorus;
 
         int slices, stacks;

@@ -189,6 +189,11 @@ void MainMenu::render() {
 
       if (ImGui::Button("Delete"))
         deleteObject = true;
+
+      setReflective = false;
+
+      if (ImGui::Button("Make reflective"))
+        setReflective = true;
     }
   }
 

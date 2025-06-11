@@ -15,6 +15,8 @@ Mesh::Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_i
 
     metallic = roughness = ao = 0.5f;
 
+    isReflective = false;
+
     glGenBuffers(1, &vbo);
     glGenBuffers(1, &ebo);
     glGenVertexArrays(1, &vao);

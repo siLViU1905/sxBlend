@@ -21,6 +21,8 @@ namespace sx
 
         static Shader shadowMapShader;
 
+        static Shader reflectionShader;
+
         static ShaderManager* shaderManager;
 
         ShaderManager();

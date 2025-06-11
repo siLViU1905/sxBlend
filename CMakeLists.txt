@@ -41,6 +41,7 @@ set(SOURCE_FILES
     include/sblend/physics/PhysicsWorld.cpp
     include/sblend/graphics/Model.cpp
     src/appMain.cpp
+        include/sblend/graphics/Reflection.cpp
 )
 
 # Create the executable target FIRST
