@@ -441,6 +441,7 @@ namespace sx
                     inputFile >> meshes->meshes.back().metallic;
                     inputFile >> meshes->meshes.back().roughness;
                     inputFile >> meshes->meshes.back().ao;
+                    inputFile >> meshes->meshes.back().isReflective;
                     meshes->meshes.back().slices = slices;
                     meshes->meshes.back().stacks = stacks;
                 }
@@ -468,11 +469,11 @@ namespace sx
                     inputFile >> lights.lights.back().quadratic;
                     if (lightty == LightType::POINT)
                         mainMenu.existentLights.emplace_back(
-                            "Point Light " +
+                            "Point " +
                             std::to_string(mainMenu.lightTypeCounter[(int) lightty]));
                     else
                         mainMenu.existentLights.emplace_back(
-                            "PBR Light " +
+                            "PBR " +
                             std::to_string(mainMenu.lightTypeCounter[(int) lightty]));
                     mainMenu.selectedLightIndicator.emplace_back(0);
                     mainMenu.lightTypeCounter[(int) lightty]++;
@@ -488,6 +489,10 @@ namespace sx
                     inputFile >> models.back().metallic;
                     inputFile >> models.back().roughness;
                     inputFile >> models.back().ao;
+
+                    mainMenu.selectedModelIndicator.emplace_back(0);
+                    mainMenu.existentModels.emplace_back("Model " + std::to_string(mainMenu.modelCounter));
+                    mainMenu.modelCounter++;
                 }
                 inputFile >> mainMenu.useLightShader;
                 inputFile >> mainMenu.usePbrLightShader;
@@ -496,6 +501,8 @@ namespace sx
             }
             mainMenu.loadProperties = false;
         }
+
+        useSkybox = mainMenu.setSkybox;
     }
 
     void Application::updatePhysics()
@@ -560,6 +567,14 @@ namespace sx
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        if (useSkybox)
+        {
+            shaders->skyboxShader.setMat4("projection", projection);
+            shaders->skyboxShader.setMat4("view", glm::mat4(glm::mat3(camera.getView())));
+
+            skybox->render(shaders->skyboxShader);
+        }
+
         shaders->basicShader.setMat4("projection", projection);
         shaders->basicShader.setMat4("camera.view", camera.getView());
         shaders->basicShader.setVec3("camera.position", camera.getPosition());
@@ -574,36 +589,39 @@ namespace sx
         shaders->modelBasicShader.setVec3("camera.position", camera.getPosition());
         shaders->modelBasicShader.setInt("useShadows", 0);
 
-        grid->render(shaders->basicShader);
-        gridLines->render(shaders->basicShader);
+        if (!useSkybox)
+        {
+            grid->render(shaders->basicShader);
+            gridLines->render(shaders->basicShader);
+        }
 
         if (mainMenu.useLightShader)
         {
-             reflection->bind();
+            reflection->bind();
 
-                shaders->lightningShader.setMat4("projection", projection);
-                shaders->lightningShader.setVec3("camera.position",
-                                                               camera.getPosition());
-                shaders->modelLightningShader.setMat4("projection", projection);
-                shaders->modelLightningShader.setVec3("camera.position",
-                                                              camera.getPosition());
+            shaders->lightningShader.setMat4("projection", projection);
+            shaders->lightningShader.setVec3("camera.position",
+                                             camera.getPosition());
+            shaders->modelLightningShader.setMat4("projection", projection);
+            shaders->modelLightningShader.setVec3("camera.position",
+                                                  camera.getPosition());
 
-               for (auto& rm:meshes->meshes)
-                   if (rm.isReflective)
-                   {
-                       float surfaceHeight = rm.position.y;
-                       glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, surfaceHeight);
-                       shaders->lightningShader.setMat4("camera.view", reflectionView);
-                       for (auto &m: meshes->meshes)
-                           if (!m.isReflective)
-                               m.render(shaders->lightningShader);
+            for (auto &rm: meshes->meshes)
+                if (rm.isReflective)
+                {
+                    float surfaceHeight = rm.position.y;
+                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, surfaceHeight);
+                    shaders->lightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m: meshes->meshes)
+                        if (!m.isReflective)
+                            m.render(shaders->lightningShader);
 
-                       shaders->modelBasicShader.setMat4("camera.view", reflectionView);
-                       for (auto &m: models)
-                           m.render(shaders->modelLightningShader);
-                   }
+                    shaders->modelBasicShader.setMat4("camera.view", reflectionView);
+                    for (auto &m: models)
+                        m.render(shaders->modelLightningShader);
+                }
 
-                reflection->unbind();
+            reflection->unbind();
 
             shaders->lightningShader.setMat4("projection", projection);
             shaders->lightningShader.setMat4("camera.view", camera.getView());
@@ -629,20 +647,18 @@ namespace sx
             for (auto &m: meshes->meshes)
                 if (m.isReflective)
                     reflection->renderSurface(m, camera, projection);
-
-        }
-        else if (mainMenu.usePbrLightShader)
+        } else if (mainMenu.usePbrLightShader)
         {
             reflection->bind();
 
             shaders->pbrLightningShader.setMat4("projection", projection);
             shaders->pbrLightningShader.setVec3("camera.position",
-                                                           camera.getPosition());
+                                                camera.getPosition());
             shaders->modelPbrLightningShader.setMat4("projection", projection);
             shaders->modelPbrLightningShader.setVec3("camera.position",
-                                                          camera.getPosition());
+                                                     camera.getPosition());
 
-            for (auto& rm:meshes->meshes)
+            for (auto &rm: meshes->meshes)
                 if (rm.isReflective)
                 {
                     float surfaceHeight = rm.position.y;
@@ -682,39 +698,39 @@ namespace sx
             for (auto &m: models)
                 m.render(shaders->modelPbrLightningShader);
 
-            for (auto& m: meshes->meshes)
+            for (auto &m: meshes->meshes)
                 if (m.isReflective)
                     reflection->renderSurface(m, camera, projection);
         } else
         {
 
-                reflection->bind();
+            reflection->bind();
 
-                shaders->basicShader.use();
-                shaders->basicShader.setMat4("projection", projection);
-                shaders->basicShader.setVec3("camera.position",
-                                                               camera.getPosition());
-                shaders->modelBasicShader.use();
-                shaders->modelBasicShader.setMat4("projection", projection);
-                shaders->modelBasicShader.setVec3("camera.position",
-                                                              camera.getPosition());
+            shaders->basicShader.use();
+            shaders->basicShader.setMat4("projection", projection);
+            shaders->basicShader.setVec3("camera.position",
+                                         camera.getPosition());
+            shaders->modelBasicShader.use();
+            shaders->modelBasicShader.setMat4("projection", projection);
+            shaders->modelBasicShader.setVec3("camera.position",
+                                              camera.getPosition());
 
-               for (auto& rm:meshes->meshes)
-                   if (rm.isReflective)
-                   {
-                       float surfaceHeight = rm.position.y;
-                       glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, surfaceHeight);
-                       shaders->basicShader.setMat4("camera.view", reflectionView);
-                       for (auto &m: meshes->meshes)
-                           if (!m.isReflective)
-                               m.render(shaders->basicShader);
+            for (auto &rm: meshes->meshes)
+                if (rm.isReflective)
+                {
+                    float surfaceHeight = rm.position.y;
+                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, surfaceHeight);
+                    shaders->basicShader.setMat4("camera.view", reflectionView);
+                    for (auto &m: meshes->meshes)
+                        if (!m.isReflective)
+                            m.render(shaders->basicShader);
 
-                       shaders->modelBasicShader.setMat4("camera.view", reflectionView);
-                       for (auto &m: models)
-                           m.render(shaders->modelBasicShader);
-                   }
+                    shaders->modelBasicShader.setMat4("camera.view", reflectionView);
+                    for (auto &m: models)
+                        m.render(shaders->modelBasicShader);
+                }
 
-                reflection->unbind();
+            reflection->unbind();
 
             shaders->basicShader.use();
             shaders->basicShader.setMat4("projection", projection);
@@ -723,11 +739,6 @@ namespace sx
             shaders->modelBasicShader.use();
             shaders->modelBasicShader.setMat4("projection", projection);
             shaders->modelBasicShader.setMat4("camera.view", camera.getView());
-
-
-            grid->render(shaders->basicShader);
-            gridLines->render(shaders->basicShader);
-
 
             for (auto &m: meshes->meshes)
                 if (!m.isReflective)
@@ -780,6 +791,8 @@ namespace sx
                            (float) WINDOW_HEIGHT / 2.f);
             mainMenu.lightMenu.menuSize =
                     ImVec2((float) WINDOW_WIDTH / 4.f, (float) WINDOW_HEIGHT / 2.f);
+
+            reflection->updateFrameBufferSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         }
 
         shaders->basicShader.setInt("useShadows", 1);
@@ -821,6 +834,32 @@ namespace sx
 
         if (mainMenu.useLightShader)
         {
+            reflection->bind();
+
+            shaders->lightningShader.setMat4("projection", projection);
+            shaders->lightningShader.setVec3("camera.position",
+                                             camera.getPosition());
+            shaders->modelLightningShader.setMat4("projection", projection);
+            shaders->modelLightningShader.setVec3("camera.position",
+                                                  camera.getPosition());
+
+            for (auto &rm: meshes->meshes)
+                if (rm.isReflective)
+                {
+                    float surfaceHeight = rm.position.y;
+                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, surfaceHeight);
+                    shaders->lightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m: meshes->meshes)
+                        if (!m.isReflective)
+                            m.render(shaders->lightningShader);
+
+                    shaders->modelBasicShader.setMat4("camera.view", reflectionView);
+                    for (auto &m: models)
+                        m.render(shaders->modelLightningShader);
+                }
+
+            reflection->unbind();
+
             shaders->lightningShader.setMat4("projection", projection);
             shaders->lightningShader.setMat4("camera.view", camera.getView());
             shaders->lightningShader.setVec3("camera.position", camera.getPosition());
@@ -841,9 +880,38 @@ namespace sx
                     m.render(shaders->lightningShader);
             for (auto &m: models)
                 m.render(shaders->modelLightningShader);
-        }
-        else if (mainMenu.usePbrLightShader)
+
+            for (auto &m: meshes->meshes)
+                if (m.isReflective)
+                    reflection->renderSurface(m, camera, projection);
+        } else if (mainMenu.usePbrLightShader)
         {
+            reflection->bind();
+
+            shaders->pbrLightningShader.setMat4("projection", projection);
+            shaders->pbrLightningShader.setVec3("camera.position",
+                                                camera.getPosition());
+            shaders->modelPbrLightningShader.setMat4("projection", projection);
+            shaders->modelPbrLightningShader.setVec3("camera.position",
+                                                     camera.getPosition());
+
+            for (auto &rm: meshes->meshes)
+                if (rm.isReflective)
+                {
+                    float surfaceHeight = rm.position.y;
+                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, surfaceHeight);
+                    shaders->lightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m: meshes->meshes)
+                        if (!m.isReflective)
+                            m.render(shaders->pbrLightningShader);
+
+                    shaders->modelBasicShader.setMat4("camera.view", reflectionView);
+                    for (auto &m: models)
+                        m.render(shaders->modelPbrLightningShader);
+                }
+
+            reflection->unbind();
+
             shaders->pbrLightningShader.setMat4("projection", projection);
             shaders->pbrLightningShader.setMat4("camera.view", camera.getView());
             shaders->pbrLightningShader.setVec3("camera.position",
@@ -865,6 +933,10 @@ namespace sx
                     m.render(shaders->pbrLightningShader);
             for (auto &m: models)
                 m.render(shaders->modelPbrLightningShader);
+
+            for (auto &m: meshes->meshes)
+                if (m.isReflective)
+                    reflection->renderSurface(m, camera, projection);
         }
 
         newMenuFrame();
@@ -976,6 +1048,21 @@ namespace sx
         physicsWorld.deltaTime = (float) glfwGetTime();
         physicsWorld.setGrid(*grid);
 
+        std::vector<Vertex>().swap(vertices);
+        std::vector<uint32_t>().swap(indices);
+
+        MeshManager::generateCubeMesh(vertices, indices);
+
+        skybox = new Skybox(vertices, indices);
+        skybox->loadTexture({
+            "../../textures/skybox/right.jpg",
+            "../../textures/skybox/left.jpg",
+            "../../textures/skybox/top.jpg",
+            "../../textures/skybox/bottom.jpg",
+            "../../textures/skybox/front.jpg",
+            "../../textures/skybox/back.jpg"
+        });
+
         Mesh::MeshTypesMap.emplace(MeshType::PLANE, "PLANE");
         Mesh::MeshTypesMap.emplace(MeshType::CIRCLE, "CIRCLE");
         Mesh::MeshTypesMap.emplace(MeshType::CUBE, "CUBE");
@@ -1018,6 +1105,8 @@ namespace sx
 
     void Application::terminateApplication(Application *&application)
     {
+        delete application->skybox;
+
         delete application->reflection;
 
         delete application->shadow;

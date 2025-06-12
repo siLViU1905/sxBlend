@@ -15,6 +15,7 @@
 #include <fstream>
 #include "physics/PhysicsWorld.h"
 #include  "graphics/Reflection.h"
+#include "graphics/Skybox.h"
 
 namespace sx
 {
@@ -56,6 +57,10 @@ namespace sx
         ShaderManager *shaders;
 
         LightManager lights;
+
+        Skybox* skybox;
+
+        bool useSkybox = false;
 
         int lightCount = 0;
 

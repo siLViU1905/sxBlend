@@ -12,6 +12,7 @@ out vec3 ViewPos;
 out vec3 FragPos;
 out mat3 TBN;
 out vec3 WorldPos;
+out vec3 skyBoxTexCoords;
 
 uniform mat4 projection;
 
@@ -35,18 +36,18 @@ void main() {
     ViewPos = camera.position;
     FragPos = WorldPos;
     
-    // Calculul corect al matricei normale
+   
     mat3 normalMatrix = mat3(transpose(inverse(model)));
     
-    // Transformarea corectă a vectorilor TBN
+    
     vec3 T = normalize(normalMatrix * aTangent);
     vec3 B = normalize(normalMatrix * aBiTangent);
     vec3 N = normalize(normalMatrix * aNormal);
     
-    // Ortogonalizarea tangentei (proces Gram-Schmidt)
+    
     T = normalize(T - dot(T, N) * N);
     
-    // Asigurarea orientării corecte
+    
     if (dot(cross(N, T), B) < 0.0) {
         T = T * -1.0;
     }
@@ -55,4 +56,6 @@ void main() {
     Normal = N; 
 
     FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
+
+    skyBoxTexCoords = aPos;
 }

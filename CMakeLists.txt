@@ -42,6 +42,7 @@ set(SOURCE_FILES
     include/sblend/graphics/Model.cpp
     src/appMain.cpp
         include/sblend/graphics/Reflection.cpp
+        include/sblend/graphics/Skybox.cpp
 )
 
 # Create the executable target FIRST

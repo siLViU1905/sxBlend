@@ -129,6 +129,8 @@ namespace sx
 
         bool setReflective;
 
+        bool setSkybox = false;
+
         bool newSphere, newCircle, newTorus;
 
         int slices, stacks;

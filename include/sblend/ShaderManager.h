@@ -23,6 +23,8 @@ namespace sx
 
         static Shader reflectionShader;
 
+        static Shader skyboxShader;
+
         static ShaderManager* shaderManager;
 
         ShaderManager();

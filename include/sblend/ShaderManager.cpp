@@ -10,6 +10,7 @@ namespace sx
     Shader ShaderManager::modelPbrLightningShader;
     Shader ShaderManager::shadowMapShader;
     Shader ShaderManager::reflectionShader;
+    Shader ShaderManager::skyboxShader;
 
     ShaderManager *ShaderManager::shaderManager = nullptr;
 
@@ -23,6 +24,7 @@ namespace sx
         modelPbrLightningShader.autoCompileAndLink("../../shaders/basic.vert", "../../shaders/modelPbrLightning.frag");
         shadowMapShader.autoCompileAndLink("../../shaders/shadowMap.vert", "../../shaders/shadowMap.frag");
         reflectionShader.autoCompileAndLink("../../shaders/basic.vert", "../../shaders/reflection.frag");
+        skyboxShader.autoCompileAndLink("../../shaders/skyBox.vert", "../../shaders/skyBox.frag");
     }
 
     ShaderManager *ShaderManager::getShaderManager()

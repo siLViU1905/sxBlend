@@ -196,6 +196,16 @@ void Mesh::renderForModelUse(Shader &shader)
     glBindVertexArray(0);
 }
 
+void Mesh::renderForSkyboxUse(Shader &shader)
+{
+    glBindVertexArray(vao);
+
+    glDrawElements(renderMode, indices.size(), GL_UNSIGNED_INT, nullptr);
+
+    glBindVertexArray(0);
+}
+
+
 const glm::mat4 &Mesh::getModel()
 {
     model = glm::mat4(1.f);
@@ -224,6 +234,7 @@ void Mesh::getProperties(std::ostringstream &stream)
     stream << metallic << '\n';
     stream << roughness << '\n';
     stream << ao << '\n';
+    stream << isReflective << '\n';
 }
 
 void Mesh::applyTexture(const char *filepath)
@@ -291,4 +302,35 @@ void Mesh::setPosition(const glm::vec3 &position)
 void Mesh::move(const glm::vec3 &offset)
 {
     position += offset;
+}
+
+bool Texture::loadCubemap(const std::vector<std::string> &faces)
+{
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, id);
+
+    int w, h, c;
+
+    unsigned char *pixels;
+    for (int i = 0; i < faces.size(); ++i)
+    {
+        pixels = stbi_load(faces[i].c_str(), &w, &h, &c, 0);
+        if (pixels)
+        {
+            glTexImage2D(
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                0, GL_RGB, w, h, 0, GL_RGB,
+                GL_UNSIGNED_BYTE, pixels);
+        }
+        else
+            return false;
+        stbi_image_free(pixels);
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return true;
 }

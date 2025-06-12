@@ -33,6 +33,7 @@ struct Texture
     std::string type;
 
     bool load(const char *filepath, const std::string &type);
+    bool loadCubemap(const std::vector<std::string>& faces);
 };
 
 class Mesh
@@ -62,6 +63,8 @@ public:
     void render(Shader &shader);
 
     void renderForModelUse(Shader &shader);
+
+    void renderForSkyboxUse(Shader& shader);
 
     std::vector<Texture> textures;
 

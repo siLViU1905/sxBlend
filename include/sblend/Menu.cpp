@@ -46,6 +46,9 @@ void MainMenu::render() {
   if (ImGui::Button(shadowText.c_str()))
     castShadows = !castShadows;
 
+  if (ImGui::Button("Set Skybox"))
+    setSkybox = !setSkybox;
+
   if (ImGui::Button("Save"))
     renderSaveMenu = true;
 

@@ -6,9 +6,11 @@ in vec2 TexCoords;
 
 uniform sampler2D reflectionTexture;
 
+uniform vec3 aColor;
+
 void main()
 {
     vec4 reflection = texture(reflectionTexture, TexCoords);
 
-    FragColor = mix(reflection, vec4(0.5,0.5,0.5,1.0), 0.2);
+    FragColor = mix(reflection, vec4(aColor,1.0), 0.5);
 }
