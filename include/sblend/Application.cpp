@@ -2,6 +2,8 @@
 #include <stdexcept>
 #include <vector>
 #define STB_IMAGE_IMPLEMENTATION
+#include <iostream>
+
 #include "../stb_image.h"
 
 namespace sx
@@ -185,10 +187,11 @@ namespace sx
             }
         }
 
-        if (mainMenu.loadModel)
+        if (mainMenu.loadRequest.type == LoadRequestType::LOAD_MODEL && !mainMenu.loadRequest.path.empty())
         {
-            models.emplace_back(mainMenu.modelPath);
-            mainMenu.loadModel = false;
+            models.emplace_back(mainMenu.loadRequest.path.c_str());
+            mainMenu.loadRequest.type = LoadRequestType::NONE;
+            mainMenu.loadRequest.path.clear();
         }
 
         renderObjectMenu = false;
@@ -212,11 +215,11 @@ namespace sx
             mainMenu.objectMenu.ao = &meshes->meshes[mainMenu.selectedMeshIndex].ao;
             renderObjectMenu = true;
 
-            if (mainMenu.setTexture)
+            if (mainMenu.loadRequest.type == LoadRequestType::LOAD_TEXTURE && !mainMenu.loadRequest.path.empty())
             {
-                meshes->meshes[mainMenu.selectedMeshIndex].applyTexture(
-                    ("../../textures/" + std::string(mainMenu.texturePath)).c_str());
-                mainMenu.setTexture = false;
+                meshes->meshes[mainMenu.selectedMeshIndex].applyTexture(mainMenu.loadRequest.path.c_str());
+                mainMenu.loadRequest.type = LoadRequestType::NONE;
+                mainMenu.loadRequest.path.clear();
             }
 
             if (mainMenu.setReflective)
@@ -350,10 +353,9 @@ namespace sx
             mainMenu.saveProperties = false;
         }
 
-        if (mainMenu.loadProperties)
+        if (mainMenu.loadRequest.type == LoadRequestType::LOAD_SCENE && !mainMenu.loadRequest.path.empty())
         {
-            std::string fileName = mainMenu.fileNameBuffer;
-            fileName += ".sblend";
+            std::string fileName = mainMenu.loadRequest.path;
             std::ifstream inputFile(fileName);
             if (inputFile.is_open())
             {
@@ -498,11 +500,11 @@ namespace sx
                 inputFile >> mainMenu.usePbrLightShader;
                 inputFile >> mainMenu.castShadows;
                 inputFile.close();
+                useSkybox = mainMenu.setSkybox;
+                mainMenu.loadRequest.type = LoadRequestType::NONE;
+                mainMenu.loadRequest.path.clear();
             }
-            mainMenu.loadProperties = false;
         }
-
-        useSkybox = mainMenu.setSkybox;
     }
 
     void Application::updatePhysics()
@@ -770,6 +772,17 @@ namespace sx
         if (renderLightMenu)
             mainMenu.lightMenu.render();
 
+        if (mainMenu.loadRequest.type != LoadRequestType::NONE)
+        {
+            mainMenu.fileDialog.Display();
+
+            if (mainMenu.fileDialog.HasSelected())
+            {
+                mainMenu.loadRequest.path = mainMenu.fileDialog.GetSelected().string();
+                mainMenu.fileDialog.ClearSelected();
+            }
+        }
+
         renderMenuFrame();
 
         glfwSwapBuffers(window);
@@ -965,6 +978,17 @@ namespace sx
 
         if (renderLightMenu)
             mainMenu.lightMenu.render();
+
+        if (mainMenu.loadRequest.type != LoadRequestType::NONE)
+        {
+            mainMenu.fileDialog.Display();
+
+            if (mainMenu.fileDialog.HasSelected())
+            {
+                mainMenu.loadRequest.path = mainMenu.fileDialog.GetSelected().string();
+                mainMenu.fileDialog.ClearSelected();
+            }
+        }
 
         renderMenuFrame();
 

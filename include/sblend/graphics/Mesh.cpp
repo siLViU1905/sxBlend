@@ -289,6 +289,11 @@ const std::vector<Vertex> &Mesh::getVertices() const
     return vertices;
 }
 
+const std::vector<uint32_t> & Mesh::getIndices() const
+{
+    return indices;
+}
+
 const glm::vec3 &Mesh::getPosition() const
 {
     return position;

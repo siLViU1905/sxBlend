@@ -102,6 +102,8 @@ public:
 
     const std::vector<Vertex> &getVertices() const;
 
+    const std::vector<uint32_t>& getIndices() const;
+
     const glm::vec3 &getPosition() const;
 
     void setPosition(const glm::vec3 &position);

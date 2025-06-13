@@ -12,6 +12,21 @@
 
 namespace sx
 {
+
+    enum class LoadRequestType
+    {
+        NONE,
+        LOAD_SCENE,
+        LOAD_MODEL,
+        LOAD_TEXTURE
+    };
+
+    struct LoadRequest
+    {
+        std::string path;
+        LoadRequestType type = LoadRequestType::NONE;
+    };
+
     class Menu
     {
     protected:
@@ -93,11 +108,7 @@ namespace sx
 
         bool saveProperties = false;
 
-        bool renderLoadMenu = false;
-
         void getProperties(std::ostringstream &stream);
-
-        bool loadProperties = false;
 
         static constexpr int fNBufferSize = 32;
 
@@ -153,21 +164,17 @@ namespace sx
 
         LightMenu lightMenu;
 
+        bool displayFileDialog = false;
+
         bool simulationState = false;
 
         bool resetSimulation = false;
 
         bool savePositionAndVelocity = false;
+        
+        LoadRequest loadRequest;
 
-        bool renderTexMenu = false;
-
-        bool setTexture = false;
-
-        char texturePath[65];
-
-        bool loadModel = false;
-
-        char modelPath[65];
+        ImGui::FileBrowser fileDialog;
 
     protected:
         void render() override;
