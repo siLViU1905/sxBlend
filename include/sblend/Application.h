@@ -92,6 +92,12 @@ namespace sx
 
         void renderWithShadows();
 
+        void handleRightClickedMouseEventForMeshes();
+
+         void handleRightClickedMouseEventForModels();
+
+        double mouseX, mouseY;
+
         Application();
 
     public:

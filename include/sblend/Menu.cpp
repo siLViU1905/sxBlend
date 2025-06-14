@@ -299,24 +299,57 @@ namespace sx
         ImGui::SetNextWindowPos(ImVec2(menuPos.x - 300.f, 0.f), ImGuiCond_Always);
         ImGui::SetNextWindowSize(ImVec2(300.f, 220.f), ImGuiCond_Always);
 
-        ImGui::Begin("Transformations", 0, windowFlags);
+        ImGui::Begin("Properties", NULL, windowFlags);
 
-        ImGui::SliderFloat3("Position", position, -10.f, 10.f);
-        ImGui::InputFloat3("Pos", position);
-        ImGui::SliderFloat3("Velocity", velocity, -10.f, 10.f);
-        ImGui::InputFloat3("Vel", velocity);
-        ImGui::SliderFloat3("Rotation", rotation, 0.f, 360.f);
-        ImGui::InputFloat3("Rot", rotation);
-        ImGui::SliderFloat3("Scale", scale, 0.f, 3.f);
-        ImGui::InputFloat3("Sca", scale);
-        ImGui::ColorPicker3("Color", color);
+        ImGui::SetNextItemOpen(false, ImGuiCond_Once);
 
-        ImGui::SliderFloat("Metallic", metallic, 0.f, 1.f);
-        ImGui::InputFloat("Met", metallic);
-        ImGui::SliderFloat("Roughness", roughness, 0.f, 1.f);
-        ImGui::InputFloat("Rou", roughness);
-        ImGui::SliderFloat("AO", ao, 0.f, 1.f);
-        ImGui::InputFloat("Ao", ao);
+        if (ImGui::CollapsingHeader("Transformations", windowFlags))
+        {
+            ImGui::SliderFloat3("Position", position, -10.f, 10.f);
+            ImGui::InputFloat3("Pos", position);
+            ImGui::SliderFloat3("Velocity", velocity, -10.f, 10.f);
+            ImGui::InputFloat3("Vel", velocity);
+            ImGui::SliderFloat3("Rotation", rotation, 0.f, 360.f);
+            ImGui::InputFloat3("Rot", rotation);
+            ImGui::SliderFloat3("Scale", scale, 0.f, 3.f);
+            ImGui::InputFloat3("Sca", scale);
+        }
+
+        ImGui::SetNextItemOpen(false, ImGuiCond_Once);
+
+        if (ImGui::CollapsingHeader("Material", windowFlags))
+        {
+            ImGui::ColorPicker3("Color", color);
+            ImGui::SliderFloat("Metallic", metallic, 0.f, 1.f);
+            ImGui::InputFloat("Met", metallic);
+            ImGui::SliderFloat("Roughness", roughness, 0.f, 1.f);
+            ImGui::InputFloat("Rou", roughness);
+            ImGui::SliderFloat("AO", ao, 0.f, 1.f);
+            ImGui::InputFloat("Ao", ao);
+        }
+
+        ImGui::End();
+
+        ImGui::SetNextWindowPos(ImVec2(menuPos.x - 405.f, 0.f), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(100.f, 100.f), ImGuiCond_Always);
+
+        ImGui::Begin("Mouse control", NULL, windowFlags);
+
+        if (ImGui::Button("Translate"))
+        {
+            translateObjectWithMouse = true;
+            scaleObjectWithMouse = rotateObjectWithMouse = false;
+        }
+        if (ImGui::Button("Scale"))
+        {
+            scaleObjectWithMouse = true;
+            translateObjectWithMouse = rotateObjectWithMouse = false;
+        }
+        if (ImGui::Button("Rotate"))
+        {
+            rotateObjectWithMouse = true;
+            translateObjectWithMouse = scaleObjectWithMouse = false;
+        }
 
         ImGui::End();
     }

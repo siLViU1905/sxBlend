@@ -27,8 +27,6 @@ class Model {
 
   static std::unordered_map<std::string, int> texCount;
 
-  int hasTex = 0;
-
   static constexpr aiTextureType types[] = {
             aiTextureType_DIFFUSE,
             aiTextureType_SPECULAR,
@@ -59,6 +57,8 @@ public:
   glm::vec3 scale;
   glm::vec3 angles;
   glm::vec3 color;
+
+  bool hasTexture = false;
 
     std::string path;
 

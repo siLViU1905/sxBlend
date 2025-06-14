@@ -10,8 +10,7 @@ std::unordered_map<int, std::string> Model::texType = {
     {aiTextureType_AMBIENT_OCCLUSION, "aoTex"},
     {aiTextureType_EMISSIVE, "emissiveTex"},
     {aiTextureType_HEIGHT, "heightTex"},
-    {aiTextureType_METALNESS, "metalicTex"}
-};
+    {aiTextureType_METALNESS, "metalicTex"}};
 
 std::unordered_map<std::string, int> Model::loadedTextures;
 
@@ -27,8 +26,12 @@ void Model::loadModel(const std::string &path)
   if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     throw std::runtime_error("");
 
-  directory = path.substr(0, path.find_last_of('/'));
-  directory.push_back('/');
+  size_t separator_pos = path.find_last_of("/\\");
+
+  if (std::string::npos != separator_pos)
+    directory = path.substr(0, separator_pos + 1);
+  else
+    directory = "";
 
   proccesNode(scene->mRootNode, scene);
 }
@@ -117,7 +120,7 @@ void Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type)
 {
   for (int i = 0; i < mat->GetTextureCount(type); ++i)
   {
-    hasTex = 1;
+    hasTexture = true;
     aiString str;
     mat->GetTexture(type, i, &str);
     std::string texPath = str.C_Str();
@@ -128,11 +131,6 @@ void Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type)
       Texture texture;
 
       std::string fullPath = directory + texPath;
-      std::string filename = texPath;
-      size_t lastSlash = texPath.find_last_of("/\\");
-
-      if (lastSlash != std::string::npos)
-        filename = texPath.substr(lastSlash + 1);
 
       texture.load(fullPath.c_str(), texType[type]);
       ++texCount[texType[type]];
@@ -174,7 +172,6 @@ void Model::render(Shader &shader)
 
   shader.setMat4("model", model);
   shader.setVec3("aColor", color);
-  shader.setInt("hasTex", hasTex);
 
   shader.setFloat("metallic", metallic);
   shader.setFloat("roughness", roughness);
@@ -210,7 +207,7 @@ bool Texture::load(const char *filepath, const std::string &type)
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   stbi_set_flip_vertically_on_load(1);
@@ -240,7 +237,7 @@ bool Texture::load(const char *filepath, const std::string &type)
       break;
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,GL_UNSIGNED_BYTE, pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, pixels);
     glGenerateMipmap(GL_TEXTURE_2D);
   }
   else

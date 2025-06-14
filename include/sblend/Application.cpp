@@ -189,7 +189,10 @@ namespace sx
 
         if (mainMenu.loadRequest.type == LoadRequestType::LOAD_MODEL && !mainMenu.loadRequest.path.empty())
         {
+
             models.emplace_back(mainMenu.loadRequest.path.c_str());
+            mainMenu.existentModels.emplace_back("Model " + std::to_string(mainMenu.modelCounter++));
+            mainMenu.selectedModelIndicator.emplace_back(0);
             mainMenu.loadRequest.type = LoadRequestType::NONE;
             mainMenu.loadRequest.path.clear();
         }
@@ -215,6 +218,8 @@ namespace sx
             mainMenu.objectMenu.ao = &meshes->meshes[mainMenu.selectedMeshIndex].ao;
             renderObjectMenu = true;
 
+            handleRightClickedMouseEventForMeshes();
+
             if (mainMenu.loadRequest.type == LoadRequestType::LOAD_TEXTURE && !mainMenu.loadRequest.path.empty())
             {
                 meshes->meshes[mainMenu.selectedMeshIndex].applyTexture(mainMenu.loadRequest.path.c_str());
@@ -236,9 +241,9 @@ namespace sx
                 glDeleteVertexArrays(1, &delMesh.vao);
                 glDeleteTextures(1, &delMesh.texture);
                 meshes->meshes.erase(meshes->meshes.begin() + mainMenu.selectedMeshIndex);
-                meshes->initialMeshesPositionsAndVelocities.erase(
-                    meshes->initialMeshesPositionsAndVelocities.begin() +
-                    mainMenu.selectedMeshIndex);
+                /* meshes->initialMeshesPositionsAndVelocities.erase(
+                     meshes->initialMeshesPositionsAndVelocities.begin() +
+                     mainMenu.selectedMeshIndex);*/
                 mainMenu.existentMeshes.erase(mainMenu.existentMeshes.begin() +
                                               mainMenu.selectedMeshIndex);
                 mainMenu.selectedMeshIndicator.erase(
@@ -265,6 +270,8 @@ namespace sx
                 &models[mainMenu.selectedModelIndex].roughness;
             mainMenu.objectMenu.ao = &models[mainMenu.selectedModelIndex].ao;
             renderObjectMenu = true;
+
+            handleRightClickedMouseEventForModels();
 
             if (mainMenu.deleteModel)
             {
@@ -505,6 +512,7 @@ namespace sx
                 mainMenu.loadRequest.path.clear();
             }
         }
+        useSkybox = mainMenu.setSkybox;
     }
 
     void Application::updatePhysics()
@@ -620,7 +628,10 @@ namespace sx
 
                     shaders->modelBasicShader.setMat4("camera.view", reflectionView);
                     for (auto &m : models)
-                        m.render(shaders->modelLightningShader);
+                        if (m.hasTexture)
+                            m.render(shaders->modelLightningShader);
+                        else
+                            m.render(shaders->lightningShader);
 
                     shaders->skyboxShader.setMat4("view", glm::mat4(glm::mat3(reflectionView)));
                     skybox->render(shaders->skyboxShader);
@@ -646,7 +657,10 @@ namespace sx
                 if (!m.isReflective)
                     m.render(shaders->lightningShader);
             for (auto &m : models)
-                m.render(shaders->modelLightningShader);
+                if (m.hasTexture)
+                    m.render(shaders->modelLightningShader);
+                else
+                    m.render(shaders->lightningShader);
 
             for (auto &m : meshes->meshes)
                 if (m.isReflective)
@@ -675,7 +689,10 @@ namespace sx
 
                     shaders->modelBasicShader.setMat4("camera.view", reflectionView);
                     for (auto &m : models)
-                        m.render(shaders->modelPbrLightningShader);
+                        if (m.hasTexture)
+                            m.render(shaders->modelPbrLightningShader);
+                        else
+                            m.render(shaders->pbrLightningShader);
 
                     shaders->skyboxShader.setMat4("view", glm::mat4(glm::mat3(reflectionView)));
                     skybox->render(shaders->skyboxShader);
@@ -703,7 +720,10 @@ namespace sx
                 if (!m.isReflective)
                     m.render(shaders->pbrLightningShader);
             for (auto &m : models)
-                m.render(shaders->modelPbrLightningShader);
+                if (m.hasTexture)
+                    m.render(shaders->modelPbrLightningShader);
+                else
+                    m.render(shaders->pbrLightningShader);
 
             for (auto &m : meshes->meshes)
                 if (m.isReflective)
@@ -734,7 +754,10 @@ namespace sx
 
                     shaders->modelBasicShader.setMat4("camera.view", reflectionView);
                     for (auto &m : models)
-                        m.render(shaders->modelBasicShader);
+                        if (m.hasTexture)
+                            m.render(shaders->modelBasicShader);
+                        else
+                            m.render(shaders->basicShader);
 
                     shaders->skyboxShader.setMat4("view", glm::mat4(glm::mat3(reflectionView)));
                     skybox->render(shaders->skyboxShader);
@@ -755,7 +778,10 @@ namespace sx
                     m.render(shaders->basicShader);
 
             for (auto &m : models)
-                m.render(shaders->modelBasicShader);
+                if (m.hasTexture)
+                    m.render(shaders->modelBasicShader);
+                else
+                    m.render(shaders->basicShader);
 
             for (auto &m : meshes->meshes)
                 if (m.isReflective)
@@ -884,7 +910,10 @@ namespace sx
 
                     shaders->modelBasicShader.setMat4("camera.view", reflectionView);
                     for (auto &m : models)
-                        m.render(shaders->modelLightningShader);
+                        if (m.hasTexture)
+                            m.render(shaders->modelLightningShader);
+                        else
+                            m.render(shaders->lightningShader);
                 }
 
             reflection->unbind();
@@ -908,7 +937,10 @@ namespace sx
                 if (!m.isReflective)
                     m.render(shaders->lightningShader);
             for (auto &m : models)
-                m.render(shaders->modelLightningShader);
+                if (m.hasTexture)
+                    m.render(shaders->modelLightningShader);
+                else
+                    m.render(shaders->lightningShader);
 
             for (auto &m : meshes->meshes)
                 if (m.isReflective)
@@ -937,7 +969,10 @@ namespace sx
 
                     shaders->modelBasicShader.setMat4("camera.view", reflectionView);
                     for (auto &m : models)
-                        m.render(shaders->modelPbrLightningShader);
+                        if (m.hasTexture)
+                            m.render(shaders->modelPbrLightningShader);
+                        else
+                            m.render(shaders->pbrLightningShader);
                 }
 
             reflection->unbind();
@@ -962,7 +997,10 @@ namespace sx
                 if (!m.isReflective)
                     m.render(shaders->pbrLightningShader);
             for (auto &m : models)
-                m.render(shaders->modelPbrLightningShader);
+                if (m.hasTexture)
+                    m.render(shaders->modelPbrLightningShader);
+                else
+                    m.render(shaders->pbrLightningShader);
 
             for (auto &m : meshes->meshes)
                 if (m.isReflective)
@@ -993,6 +1031,91 @@ namespace sx
         renderMenuFrame();
 
         glfwSwapBuffers(window);
+    }
+
+    void Application::handleRightClickedMouseEventForMeshes()
+    {
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
+        {
+            double newMouseX, newMousey;
+            glfwGetCursorPos(window, &newMouseX, &newMousey);
+
+            float xOffset = (float)newMouseX - (float)mouseX;
+            float yOffset = (float)newMousey - (float)mouseY;
+
+            xOffset *= 0.1f;
+            yOffset *= 0.1f;
+            if (mainMenu.objectMenu.translateObjectWithMouse)
+            {
+                meshes->meshes[mainMenu.selectedMeshIndex].position.y += yOffset;
+
+                if (camera.getPosition().z > 0.f)
+                    meshes->meshes[mainMenu.selectedMeshIndex].position.x += xOffset;
+                else
+                    meshes->meshes[mainMenu.selectedMeshIndex].position.z += xOffset;
+            }
+            else if (mainMenu.objectMenu.scaleObjectWithMouse)
+            {
+                meshes->meshes[mainMenu.selectedMeshIndex].scale.y += yOffset;
+
+                if (camera.getPosition().z > 0.f)
+                    meshes->meshes[mainMenu.selectedMeshIndex].scale.x += xOffset;
+                else
+                    meshes->meshes[mainMenu.selectedMeshIndex].scale.z += xOffset;
+            }
+            else if (mainMenu.objectMenu.rotateObjectWithMouse)
+            {
+                meshes->meshes[mainMenu.selectedMeshIndex].angles.y += xOffset * 10.f;
+
+                if (camera.getPosition().z > 0.f)
+                    meshes->meshes[mainMenu.selectedMeshIndex].angles.x += yOffset * 10.f;
+                else
+                    meshes->meshes[mainMenu.selectedMeshIndex].angles.z += yOffset * 10.f;
+            }
+        }
+    }
+
+    void Application::handleRightClickedMouseEventForModels()
+    {
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
+        {
+            double newMouseX, newMousey;
+            glfwGetCursorPos(window, &newMouseX, &newMousey);
+
+            float xOffset = (float)newMouseX - (float)mouseX;
+            float yOffset = (float)newMousey - (float)mouseY;
+
+            xOffset *= 0.01f;
+            yOffset *= 0.01f;
+
+            if (mainMenu.objectMenu.translateObjectWithMouse)
+            {
+                models[mainMenu.selectedModelIndex].position.y += -yOffset;
+
+                if (camera.getPosition().z > 0.f)
+                    models[mainMenu.selectedModelIndex].position.x += xOffset;
+                else
+                    models[mainMenu.selectedModelIndex].position.z += xOffset;
+            }
+            else if (mainMenu.objectMenu.scaleObjectWithMouse)
+            {
+                models[mainMenu.selectedModelIndex].scale.y += -yOffset;
+
+                if (camera.getPosition().z > 0.f)
+                    models[mainMenu.selectedModelIndex].scale.x += xOffset;
+                else
+                    models[mainMenu.selectedModelIndex].scale.z += xOffset;
+            }
+            else if (mainMenu.objectMenu.rotateObjectWithMouse)
+            {
+                models[mainMenu.selectedModelIndex].angles.y += xOffset * 100.f;
+
+                if (camera.getPosition().z > 0.f)
+                    models[mainMenu.selectedModelIndex].angles.x += yOffset * 100.f;
+                else
+                    models[mainMenu.selectedModelIndex].angles.z += yOffset * 100.f;
+            }
+        }
     }
 
     Application::Application() : camera(window, glm::vec3(0.f, 2.f, 3.f), 2.f)
@@ -1131,6 +1254,8 @@ namespace sx
             camera.update(window);
 
             updateMenuState();
+
+            glfwGetCursorPos(window, &mouseX, &mouseY);
         }
     }
 
