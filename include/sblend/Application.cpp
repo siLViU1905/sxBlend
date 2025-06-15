@@ -1120,7 +1120,7 @@ namespace sx
         glfwSetKeyCallback(window, keyCallback);
         glfwSetScrollCallback(window, scrollCallback);
 
-        appIcon.pixels = stbi_load("../../src/appIcon.png", &appIcon.width,
+        appIcon.pixels = stbi_load("appIcon.png", &appIcon.width,
                                    &appIcon.height, nullptr, 0);
 
         if (appIcon.pixels == nullptr)
