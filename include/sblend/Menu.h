@@ -55,7 +55,7 @@ namespace sx
 
         ImVec2 menuPos, menuSize;
 
-         bool rotateObjectWithMouse, scaleObjectWithMouse, translateObjectWithMouse;
+         bool rotateObjectWithMouse = true, scaleObjectWithMouse = false, translateObjectWithMouse = false;
 
     public:
         ObjectMenu();
