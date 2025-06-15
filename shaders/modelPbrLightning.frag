@@ -11,7 +11,6 @@ struct Light
 {
     vec3 position;
     vec3 color;
-    float intensity;
 };
 
 uniform Light light[6];
@@ -19,12 +18,6 @@ uniform int lightCount;
 
 uniform vec3 camPos;
 
-struct Material
-{
-    sampler2D metalicTex;
-    sampler2D normalTex;
-};
-uniform Material material;
 
 const float PI = 3.14159265359;
 
@@ -73,11 +66,6 @@ vec3 FresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-vec3 GetNormalFromMap()
-{
-    vec3 tangentNormal = texture(material.normalTex, TexCoords).xyz * 2.0 - 1.0;
-    return normalize(TBN * tangentNormal);
-}
 
 vec3 CalculateLight(Light light, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness)
 {
@@ -106,23 +94,113 @@ vec3 CalculateLight(Light light, vec3 V, vec3 N, vec3 F0, vec3 albedo, float met
     return (kD * albedo / PI + specular) * NdotL;
 }
 
+uniform sampler2DArray diffuseTexArray;
+uniform sampler2DArray specularTexArray;
+uniform sampler2DArray normalTexArray;
+uniform sampler2DArray heightTexArray;
+uniform sampler2DArray emissiveTexArray;
+uniform sampler2DArray ambientOcclusionTexArray;
+uniform sampler2DArray metalnessTexArray;
+uniform sampler2DArray roughnessTexArray;
+uniform sampler2DArray opacityTexArray;
+
+struct GpuMaterial
+{
+    int diffuseTexLayer;
+    int specularTexLayer;
+    int normalTexLayer;
+    int heightTexLayer;
+    int emissiveTexLayer;
+    int ambientOcclusionTexLayer;
+    int metalnessTexLayer;
+    int roughnessTexLayer;
+    int opacityTexLayer;
+    int hasDiffuse;
+    int hasSpecular;
+    int hasNormal;
+    int hasHeight;
+    int hasEmissive;
+    int hasAmbientOcclusion;
+    int hasMetalness;
+    int hasRoughness;
+    int hasOpacity;
+    vec4 fallbackColor;
+};
+
+in flat int drawID;
+layout(std140, binding = 0) uniform MaterialBuffer {
+    GpuMaterial materials[256];
+};
+
 uniform vec3 aColor;
-uniform float roughness;
+
 out vec4 FragColor;
 
 void main()
 {
-    vec3 viewDir = normalize(ViewPos - FragPos);
+    GpuMaterial mat = materials[drawID];
 
-    float metallic = texture(material.metalicTex, TexCoords).r;
+    vec3 albedo = texture(diffuseTexArray, vec3(TexCoords, mat.diffuseTexLayer)).rgb;
+    float metallic = texture(metalnessTexArray, vec3(TexCoords, mat.metalnessTexLayer)).r;
+    float roughness = texture(roughnessTexArray, vec3(TexCoords, mat.roughnessTexLayer)).r;
+    float ao = texture(ambientOcclusionTexArray, vec3(TexCoords, mat.ambientOcclusionTexLayer)).r;
+    vec3 emissive = texture(emissiveTexArray, vec3(TexCoords, mat.emissiveTexLayer)).rgb;
+    float opacity = texture(opacityTexArray, vec3(TexCoords, mat.opacityTexLayer)).r;
 
-    vec3 N = GetNormalFromMap();
+    vec3 N = normalize(Normal);
+    if(mat.hasNormal == 1)
+    {
+
+        vec3 tangentNormal = texture(normalTexArray, vec3(TexCoords, mat.normalTexLayer)).xyz * 2.0 - 1.0;
+        N = normalize(TBN * tangentNormal);
+    }
+
     vec3 V = normalize(camPos - WorldPos);
 
     vec3 F0 = vec3(0.04);
-    F0 = mix(F0, aColor, metallic);
+    F0 = mix(F0, albedo, metallic);
+
 
     vec3 Lo = vec3(0.0);
-    for(int i=0;i<lightCount;++i)
-    Lo += CalculateLight(light[i], V, N, F0, aColor, metallic, roughness);
+    for (int i = 0; i < lightCount; ++i)
+    {
+
+        vec3 L = normalize(light[i].position - WorldPos);
+        vec3 H = normalize(V + L);
+        float distance = length(light[i].position - WorldPos);
+        float attenuation = 1.0 / (distance * distance);
+        vec3 radiance = light[i].color * attenuation;
+
+
+        float NDF = DistributionGGX(N, H, roughness);
+        float G = GeometrySmith(N, V, L, roughness);
+        vec3 F = FresnelSchlick(max(dot(H, V), 0.0), F0);
+
+
+        vec3 numerator = NDF * G * F;
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001;
+        vec3 specular = numerator / denominator;
+
+
+        vec3 kS = F;
+        vec3 kD = vec3(1.0) - kS;
+        kD *= 1.0 - metallic;
+
+
+        float NdotL = max(dot(N, L), 0.0);
+        Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+    }
+
+    vec3 ambient = vec3(0.03) * albedo * ao;
+    vec3 color = ambient + Lo;
+
+
+    color += emissive;
+
+
+    color = color / (color + vec3(1.0));
+
+    color = pow(color, vec3(1.0 / 2.2));
+
+    FragColor = vec4(color, opacity);
 }

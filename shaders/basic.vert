@@ -6,6 +6,8 @@ layout(location = 2) in vec2 aTexCoords;
 layout(location = 3) in vec3 aTangent;
 layout(location = 4) in vec3 aBiTangent;
 
+out flat int drawID;
+
 out vec2 TexCoords;
 out vec3 Normal;
 out vec3 ViewPos;
@@ -27,7 +29,10 @@ uniform mat4 model;
 uniform mat4 lightSpaceMatrix;
 out vec4 FragPosLightSpace;
 
-void main() {
+void main() 
+{
+    drawID = gl_DrawID;
+
     WorldPos = vec3(model * vec4(aPos, 1.0));
     
     gl_Position = projection * camera.view * vec4(WorldPos, 1.0);

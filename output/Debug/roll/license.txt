@@ -1,8 +1,0 @@
-Model Information:
-* title:	Toilet roll
-* source:	https://sketchfab.com/3d-models/toilet-roll-ee7b95fec54749ada1a4476ea084cc75
-* author:	Sousinho (https://sketchfab.com/sousinho)
-
-Model License:
-* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
-* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works

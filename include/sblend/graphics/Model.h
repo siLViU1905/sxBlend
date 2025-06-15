@@ -6,51 +6,96 @@
 #include "Mesh.h"
 #include <cstdint>
 #include <unordered_map>
+#include <map>
 
+struct RenderElementsIndirectCommand
+{
+  unsigned int count;
+  unsigned int instanceCount;
+  unsigned int firstIndex;
+  unsigned int baseVertex;
+  unsigned int baseInstance;
+};
 
-class Model {
+struct GpuMaterial
+{
+  int diffuseTexLayer;
+  int specularTexLayer;
+  int normalTexLayer;
+  int heightTexLayer;
+  int emissiveTexLayer;
+  int ambientOcclusionTexLayer;
+  int metalnessTexLayer;
+  int roughnessTexLayer;
+  int opacityTexLayer;
+  int hasDiffuse;
+  int hasSpecular;
+  int hasNormal;
+  int hasHeight;
+  int hasEmissive;
+  int hasAmbientOcclusion;
+  int hasMetalness;
+  int hasRoughness;
+  int hasOpacity;
+  glm::vec4 fallbackColor;
+};
+
+class Model
+{
   std::string directory;
+
+  std::vector<RenderElementsIndirectCommand> renderCommands;
+
+  std::vector<Vertex> allVertices;
+  std::vector<uint32_t> allIndices;
+
+  void setupIndirectRendering();
+
+  std::vector<GpuMaterial> gpuMaterials;
+
+  std::vector<std::string> diffuseTexturePaths;
+  std::vector<std::string> specularTexturePaths;
+  std::vector<std::string> normalTexturePaths;
+  std::vector<std::string> heightTexturePaths;
+  std::vector<std::string> emissiveTexturePaths;
+  std::vector<std::string> ambientOcclusionTexturePaths;
+  std::vector<std::string> metalnessTexturePaths;
+  std::vector<std::string> roughnessTexturePaths;
+  std::vector<std::string> opacityTexturePaths;
+
+  std::map<std::string, int> diffusePathToIndex;
+  std::map<std::string, int> specularPathToIndex;
+  std::map<std::string, int> normalPathToIndex;
+  std::map<std::string, int> heightPathToIndex;
+  std::map<std::string, int> emissivePathToIndex;
+  std::map<std::string, int> ambientOcclusionPathToIndex;
+  std::map<std::string, int> metalnessPathToIndex;
+  std::map<std::string, int> roughnessPathToIndex;
+  std::map<std::string, int> opacityPathToIndex;
+
+  void setupGpuResources();
+
+  void setUpTextureArray(uint32_t& textureArray, const std::vector<std::string>& texturePaths);
+
+  void setupPaths(aiMaterial* material, GpuMaterial& currentMaterial);
+
+  void debugMaterials();
 
   void loadModel(const std::string &path);
 
-  void proccesNode(aiNode *node, const aiScene *scene);
+  void processNode(aiNode *node, const aiScene *scene);
 
-  void proccesMesh(aiMesh *mesh, const aiScene *scene);
-
-  void loadMaterialTextures(aiMaterial* mat, aiTextureType type);
+  void processMesh(aiMesh *mesh, const aiScene *scene);
 
   glm::mat4 model;
-
-  static std::unordered_map<int, std::string> texType;
-
-  static std::unordered_map<std::string, int> loadedTextures;
-
-  static std::unordered_map<std::string, int> texCount;
-
-  static constexpr aiTextureType types[] = {
-            aiTextureType_DIFFUSE,
-            aiTextureType_SPECULAR,
-            aiTextureType_AMBIENT,
-            aiTextureType_EMISSIVE,
-            aiTextureType_HEIGHT,
-            aiTextureType_NORMALS,
-            aiTextureType_SHININESS,
-            aiTextureType_OPACITY,
-            aiTextureType_DISPLACEMENT,
-            aiTextureType_LIGHTMAP,
-            aiTextureType_REFLECTION,
-            aiTextureType_BASE_COLOR,
-            aiTextureType_NORMAL_CAMERA,
-            aiTextureType_EMISSION_COLOR,
-            aiTextureType_METALNESS,
-            aiTextureType_DIFFUSE_ROUGHNESS,
-            aiTextureType_AMBIENT_OCCLUSION};
 
 public:
   Model(const char *path);
 
-  std::vector<Mesh> meshes;
-  std::vector<Texture> textures;
+  uint32_t materialUBO, diffuseTexArray, specularTexArray, normalTexArray, heightTexArray,
+  emissiveTexArray, ambientOcclusionTexArray, metalnessTexArray, roughnessTexArray, opacityTexArray;
+
+  uint32_t vbo, ebo, vao, indirectBuffer;
 
   glm::vec3 position;
   glm::vec3 velocity;
@@ -58,11 +103,9 @@ public:
   glm::vec3 angles;
   glm::vec3 color;
 
-  bool hasTexture = false;
+  std::string path;
 
-    std::string path;
-
-  const glm::mat4& getModel();
+  const glm::mat4 &getModel();
 
   float metallic;
   float roughness;
@@ -70,6 +113,6 @@ public:
 
   void render(Shader &shader);
 
-    void getProperties(std::ostringstream& stream);
+  void getProperties(std::ostringstream &stream);
 };
 #endif // __MODEL_H__
