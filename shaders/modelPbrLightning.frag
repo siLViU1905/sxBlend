@@ -106,6 +106,7 @@ uniform sampler2DArray opacityTexArray;
 
 struct GpuMaterial
 {
+    vec4 fallbackColor;
     int diffuseTexLayer;
     int specularTexLayer;
     int normalTexLayer;
@@ -124,7 +125,6 @@ struct GpuMaterial
     int hasMetalness;
     int hasRoughness;
     int hasOpacity;
-    vec4 fallbackColor;
 };
 
 in flat int drawID;
@@ -135,6 +135,32 @@ layout(std140, binding = 0) uniform MaterialBuffer {
 uniform vec3 aColor;
 
 out vec4 FragColor;
+
+in vec4 FragPosLightSpace;
+uniform sampler2D shadowMap;
+uniform int useShadows;
+
+float calculateShadow(vec4 fragPosLightSpace) {
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5;
+
+    if (projCoords.z > 1.0) return 0.0;
+
+    float currentDepth = projCoords.z;
+    vec3 lightDir = normalize(light[0].position - FragPos);
+    float bias = max(0.05 * (1.0 - dot(Normal, lightDir)), 0.005);
+
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+    }
+    shadow /= 9.0;
+    return shadow;
+}
 
 void main()
 {
@@ -155,6 +181,8 @@ void main()
         N = normalize(TBN * tangentNormal);
     }
 
+    float shadow = (useShadows == 1) ? calculateShadow(FragPosLightSpace) : 0.0;
+
     vec3 V = normalize(camPos - WorldPos);
 
     vec3 F0 = vec3(0.04);
@@ -164,7 +192,6 @@ void main()
     vec3 Lo = vec3(0.0);
     for (int i = 0; i < lightCount; ++i)
     {
-
         vec3 L = normalize(light[i].position - WorldPos);
         vec3 H = normalize(V + L);
         float distance = length(light[i].position - WorldPos);
@@ -187,8 +214,15 @@ void main()
         kD *= 1.0 - metallic;
 
 
+
         float NdotL = max(dot(N, L), 0.0);
-        Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+        vec3 lightContribution = (kD * albedo / PI + specular) * radiance * NdotL;
+
+        if (i == 0 )
+            lightContribution *= (1.0 - shadow);
+
+
+        Lo += lightContribution;
     }
 
     vec3 ambient = vec3(0.03) * albedo * ao;
@@ -197,10 +231,11 @@ void main()
 
     color += emissive;
 
-
     color = color / (color + vec3(1.0));
 
     color = pow(color, vec3(1.0 / 2.2));
+
+    color *= (1.0 - shadow);
 
     FragColor = vec4(color, opacity);
 }

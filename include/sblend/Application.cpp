@@ -839,7 +839,12 @@ namespace sx
         shaders->basicShader.setInt("useShadows", 1);
 
         shaders->lightningShader.setInt("useShadows", 1);
+
+        shaders->pbrLightningShader.setInt("useShadows", 1);
+
         shaders->modelLightningShader.setInt("useShadows", 1);
+
+        shaders->modelPbrLightningShader.setInt("useShadows", 1);
 
         shadow->lightView = glm::lookAt(lights.lights.front().position,
                                         glm::vec3(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -868,7 +873,11 @@ namespace sx
 
         shadow->apply_shadow_texture(shaders->lightningShader);
 
+        shadow->apply_shadow_texture(shaders->pbrLightningShader);
+
         shadow->apply_shadow_texture(shaders->modelLightningShader);
+
+        shadow->apply_shadow_texture(shaders->modelPbrLightningShader);
 
         grid->render(shaders->basicShader);
         gridLines->render(shaders->basicShader);
@@ -894,7 +903,7 @@ namespace sx
                         if (!m.isReflective)
                             m.render(shaders->lightningShader);
 
-                    shaders->modelBasicShader.setMat4("camera.view", reflectionView);
+                    shaders->modelLightningShader.setMat4("camera.view", reflectionView);
                     for (auto &m: models)
                         m.render(shaders->modelLightningShader);
                 }
@@ -925,7 +934,8 @@ namespace sx
             for (auto &m: meshes->meshes)
                 if (m.isReflective)
                     reflection->renderSurface(m, camera, projection);
-        } else if (mainMenu.usePbrLightShader)
+        }
+        else if (mainMenu.usePbrLightShader)
         {
             reflection->bind();
 
@@ -946,7 +956,7 @@ namespace sx
                         if (!m.isReflective)
                             m.render(shaders->pbrLightningShader);
 
-                    shaders->modelBasicShader.setMat4("camera.view", reflectionView);
+                    shaders->modelPbrLightningShader.setMat4("camera.view", reflectionView);
                     for (auto &m: models)
                         m.render(shaders->modelPbrLightningShader);
                 }

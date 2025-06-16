@@ -19,6 +19,7 @@ struct RenderElementsIndirectCommand
 
 struct GpuMaterial
 {
+  glm::vec4 fallbackColor;
   int diffuseTexLayer;
   int specularTexLayer;
   int normalTexLayer;
@@ -37,8 +38,9 @@ struct GpuMaterial
   int hasMetalness;
   int hasRoughness;
   int hasOpacity;
-  glm::vec4 fallbackColor;
+  char _padding[8];
 };
+
 
 class Model
 {

@@ -18,6 +18,7 @@ uniform sampler2DArray opacityTexArray;
 
 struct GpuMaterial
 {
+    vec4 fallbackColor;
     int diffuseTexLayer;
     int specularTexLayer;
     int normalTexLayer;
@@ -36,13 +37,12 @@ struct GpuMaterial
     int hasMetalness;
     int hasRoughness;
     int hasOpacity;
-    vec4 fallbackColor;
 };
 
 in flat int drawID;
 layout(std140, binding = 0) uniform MaterialBuffer
 {
-    GpuMaterial materials[256];
+    GpuMaterial materials[128];
 };
 
 out vec4 FragColor;
@@ -94,6 +94,7 @@ uniform int useShadows;
 void main()
 {
     GpuMaterial currentMaterial = materials[drawID];
+
 
     vec3 diffuseColor = currentMaterial.fallbackColor.rgb;
     vec3 specularColor = vec3(0.0);

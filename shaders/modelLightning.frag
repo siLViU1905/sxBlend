@@ -33,6 +33,7 @@ uniform sampler2DArray opacityTexArray;
 
 struct GpuMaterial
 {
+    vec4 fallbackColor;
     int diffuseTexLayer;
     int specularTexLayer;
     int normalTexLayer;
@@ -51,12 +52,11 @@ struct GpuMaterial
     int hasMetalness;
     int hasRoughness;
     int hasOpacity;
-    vec4 fallbackColor;
 };
 
 in flat int drawID;
 layout(std140, binding = 0) uniform MaterialBuffer {
-    GpuMaterial materials[256];
+    GpuMaterial materials[128];
 };
 
 in vec4 FragPosLightSpace;
@@ -106,37 +106,60 @@ float calculateShadow(vec4 fragPosLightSpace) {
     return shadow;
 }
 
-void main() {
+void main()
+{
     GpuMaterial mat = materials[drawID];
 
     vec2 pTexCoords = TexCoords;
     vec3 viewDirTangent = transpose(TBN) * normalize(ViewPos - FragPos);
+
+
     if (mat.hasHeight == 1 && mat.hasNormal == 1)
     {
         float height = texture(heightTexArray, vec3(TexCoords, mat.heightTexLayer)).r;
         pTexCoords = calculateParallaxCoords(viewDirTangent, height);
     }
 
+    vec3 materialDiffuse;
+    vec3 materialSpecular;
 
-    vec3 materialDiffuse = texture(diffuseTexArray, vec3(pTexCoords, mat.diffuseTexLayer)).rgb;
-    vec3 materialSpecular = texture(specularTexArray, vec3(pTexCoords, mat.specularTexLayer)).rgb;
+
+    if (mat.hasDiffuse == 1)
+    materialDiffuse = texture(diffuseTexArray, vec3(pTexCoords, mat.diffuseTexLayer)).rgb;
+    else
+    materialDiffuse = mat.fallbackColor.rgb;
+
+
+
+    if (mat.hasSpecular == 1 && mat.specularTexLayer >= 0)
+    materialSpecular = texture(specularTexArray, vec3(pTexCoords, mat.specularTexLayer)).rgb;
+    else
+    materialSpecular = vec3(0.2);
+
+
     float shininess = 32.0;
 
+
     float ao = 1.0;
-    if (mat.hasAmbientOcclusion == 1) {
-        ao = texture(ambientOcclusionTexArray, vec3(pTexCoords, mat.ambientOcclusionTexLayer)).r;
-    }
+    if (mat.hasAmbientOcclusion == 1)
+    ao = texture(ambientOcclusionTexArray, vec3(pTexCoords, mat.ambientOcclusionTexLayer)).r;
+
 
     vec3 normal = normalize(Normal);
-    if (mat.hasNormal == 1) {
+    if (mat.hasNormal == 1)
+    {
         vec3 tangentNormal = texture(normalTexArray, vec3(pTexCoords, mat.normalTexLayer)).xyz * 2.0 - 1.0;
+
+
+        if (length(tangentNormal) > 0.1)
         normal = normalize(TBN * tangentNormal);
+
     }
 
+
     vec3 emissive = vec3(0.0);
-    if (mat.hasEmissive == 1) {
-        emissive = texture(emissiveTexArray, vec3(pTexCoords, mat.emissiveTexLayer)).rgb;
-    }
+    if (mat.hasEmissive == 1)
+    emissive = texture(emissiveTexArray, vec3(pTexCoords, mat.emissiveTexLayer)).rgb;
 
 
     vec3 viewDir = normalize(ViewPos - FragPos);
@@ -144,35 +167,32 @@ void main() {
 
     float shadow = (useShadows == 1) ? calculateShadow(FragPosLightSpace) : 0.0;
 
-    for (int i = 0; i < lightCount; i++)
+    for (int i = 0; i < lightCount && i < 6; i++)
     {
         float distance = length(light[i].position - FragPos);
         float attenuation = calculateAttenuation(distance, light[i].constant, light[i].linear, light[i].quadratic);
 
         vec3 lightDir = normalize(light[i].position - FragPos);
-
         vec3 ambient = light[i].ambient * materialDiffuse * ao;
-
         vec3 diffuse = calculateDiffuse(normal, lightDir, light[i].diffuse, materialDiffuse);
-
-
         vec3 specular = calculateSpecular(normal, lightDir, viewDir, light[i].specular, materialSpecular, shininess);
 
-        if (i == 0) {
-            totalLighting += (ambient + (1.0 - shadow) * (diffuse + specular)) * light[i].color * attenuation;
-        } else {
-            totalLighting += (ambient + diffuse + specular) * light[i].color * attenuation;
-        }
-    }
+        if (i == 0)
+        totalLighting += (ambient + (1.0 - shadow) * (diffuse + specular)) * light[i].color * attenuation;
+        else
+        totalLighting += (ambient + diffuse + specular) * light[i].color * attenuation;
 
+    }
 
     vec3 finalColor = totalLighting + emissive;
 
-
     float opacity = 1.0;
-    if (mat.hasOpacity == 1) {
-        opacity = texture(opacityTexArray, vec3(pTexCoords, mat.opacityTexLayer)).r;
-    }
+    if (mat.hasOpacity == 1)
+    opacity = texture(opacityTexArray, vec3(pTexCoords, mat.opacityTexLayer)).r;
+
+
+    if (any(isnan(finalColor)) || any(isinf(finalColor)))
+    finalColor = mat.fallbackColor.rgb;
 
     FragColor = vec4(finalColor, opacity);
 }
