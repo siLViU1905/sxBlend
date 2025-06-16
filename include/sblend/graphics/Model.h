@@ -4,7 +4,6 @@
 #include "../../assimp/postprocess.h"
 #include "../../assimp/scene.h"
 #include "Mesh.h"
-#include <cstdint>
 #include <unordered_map>
 #include <map>
 
@@ -41,6 +40,7 @@ struct GpuMaterial
   char _padding[8];
 };
 
+static_assert(sizeof(GpuMaterial) % 16 == 0);
 
 class Model
 {

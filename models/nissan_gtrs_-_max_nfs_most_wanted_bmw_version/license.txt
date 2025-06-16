@@ -1,0 +1,8 @@
+Model Information:
+* title:	Nissan GTRs - Max (NFS Most Wanted BMW Version)
+* source:	https://sketchfab.com/3d-models/nissan-gtrs-max-nfs-most-wanted-bmw-version-1d4a30cf127c426b9e8d8a46aded19df
+* author:	Allay Design (https://sketchfab.com/Alister.Dsa)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works
