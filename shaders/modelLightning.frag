@@ -30,6 +30,7 @@ uniform sampler2DArray ambientOcclusionTexArray;
 uniform sampler2DArray metalnessTexArray;
 uniform sampler2DArray roughnessTexArray;
 uniform sampler2DArray opacityTexArray;
+uniform sampler2DArray shininessTexArray;
 
 struct GpuMaterial
 {
@@ -43,6 +44,7 @@ struct GpuMaterial
     int metalnessTexLayer;
     int roughnessTexLayer;
     int opacityTexLayer;
+    int shininessTexLayer;
     int hasDiffuse;
     int hasSpecular;
     int hasNormal;
@@ -52,10 +54,11 @@ struct GpuMaterial
     int hasMetalness;
     int hasRoughness;
     int hasOpacity;
+    int hasShininess;
 };
 
 in flat int drawID;
-layout(std140, binding = 0) uniform MaterialBuffer {
+layout (std140, binding = 0) uniform MaterialBuffer {
     GpuMaterial materials[128];
 };
 
@@ -131,13 +134,18 @@ void main()
 
 
 
-    if (mat.hasSpecular == 1 && mat.specularTexLayer >= 0)
+    if (mat.hasSpecular == 1)
     materialSpecular = texture(specularTexArray, vec3(pTexCoords, mat.specularTexLayer)).rgb;
     else
     materialSpecular = vec3(0.2);
 
 
-    float shininess = 32.0;
+    float shininess;
+
+    if (mat.hasShininess == 1)
+    shininess = texture(shininessTexArray, vec3(pTexCoords, mat.shininessTexLayer)).r;
+    else
+    shininess = 32.0;
 
 
     float ao = 1.0;

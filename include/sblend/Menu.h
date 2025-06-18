@@ -92,6 +92,21 @@ namespace sx
         friend class MainMenu;
     };
 
+    class ErrorMenu: protected Menu
+    {
+        std::string message;
+        std::string title;
+        bool renderMenu = false;
+        ImVec2 position;
+
+    protected:
+        void render() override;
+
+    public:
+        friend class Application;
+        friend class MainMenu;
+    };
+
     class MainMenu : protected Menu
     {
         bool meshBtnPressed = false;
@@ -105,8 +120,6 @@ namespace sx
         bool usePbrLightShader = false;
 
         bool castShadows = false;
-
-        bool renderSaveMenu = false;
 
         bool saveProperties = false;
 
@@ -152,6 +165,8 @@ namespace sx
 
         bool generate = false;
 
+        bool renderSaveMenu = false;
+
         std::vector<unsigned char> selectedMeshIndicator;
 
         std::unordered_map<int, int> meshTypeCounter;
@@ -177,6 +192,8 @@ namespace sx
         LoadRequest loadRequest;
 
         ImGui::FileBrowser fileDialog;
+
+        ErrorMenu errorMenu;
 
     protected:
         void render() override;

@@ -6,21 +6,27 @@
 
 void Model::loadModel(const std::string &path)
 {
+    hasLoaded = true;
     Assimp::Importer import;
     const aiScene *scene =
-            import.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals  | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+            import.ReadFile(
+                path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
+                      aiProcess_CalcTangentSpace);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-        throw std::runtime_error("");
+        hasLoaded = false;
 
-    size_t separator_pos = path.find_last_of("/\\");
+    if (hasLoaded)
+    {
+        size_t separator_pos = path.find_last_of("/\\");
 
-    if (std::string::npos != separator_pos)
-        directory = path.substr(0, separator_pos + 1);
-    else
-        directory = "";
+        if (std::string::npos != separator_pos)
+            directory = path.substr(0, separator_pos + 1);
+        else
+            directory = "";
 
-    processNode(scene->mRootNode, scene);
+        processNode(scene->mRootNode, scene);
+    }
 }
 
 void Model::processNode(aiNode *node, const aiScene *scene)
@@ -103,6 +109,7 @@ void Model::processMesh(aiMesh *mesh, const aiScene *scene)
     currentMaterial.metalnessTexLayer = -1;
     currentMaterial.roughnessTexLayer = -1;
     currentMaterial.opacityTexLayer = -1;
+    currentMaterial.shininessTexLayer = -1;
 
 
     currentMaterial.hasDiffuse = 0;
@@ -114,6 +121,7 @@ void Model::processMesh(aiMesh *mesh, const aiScene *scene)
     currentMaterial.hasMetalness = 0;
     currentMaterial.hasRoughness = 0;
     currentMaterial.hasOpacity = 0;
+    currentMaterial.hasShininess = 0;
 
 
     currentMaterial.fallbackColor = glm::vec4(color, 1.0f);
@@ -122,7 +130,7 @@ void Model::processMesh(aiMesh *mesh, const aiScene *scene)
     {
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 
-       setupPaths(material, currentMaterial);
+        setupPaths(material, currentMaterial);
     }
     gpuMaterials.push_back(currentMaterial);
 
@@ -148,7 +156,7 @@ Model::Model(const char *path) : path(path)
 
     setupGpuResources();
 
-   // debugMaterials();
+    debugMaterials();
 }
 
 const glm::mat4 &Model::getModel()
@@ -276,6 +284,7 @@ void Model::setupGpuResources()
     setUpTextureArray(metalnessTexArray, metalnessTexturePaths);
     setUpTextureArray(roughnessTexArray, roughnessTexturePaths);
     setUpTextureArray(opacityTexArray, opacityTexturePaths);
+    setUpTextureArray(shininessTexArray, shininessTexturePaths);
 
     glGenBuffers(1, &materialUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, materialUBO);
@@ -306,14 +315,14 @@ void Model::setUpTextureArray(uint32_t &textureArray, const std::vector<std::str
         int width, height, origChannels;
 
 
-        unsigned char* data = stbi_load(fullPath.c_str(), &width, &height, &origChannels, 4);
+        unsigned char *data = stbi_load(fullPath.c_str(), &width, &height, &origChannels, 4);
         const int channels = 4;
 
         if (data)
         {
-
             std::vector<unsigned char> resizedData;
-            if (width != TEX_WIDTH || height != TEX_HEIGHT) {
+            if (width != TEX_WIDTH || height != TEX_HEIGHT)
+            {
                 resizedData.resize(TEX_WIDTH * TEX_HEIGHT * channels);
                 stbir_resize_uint8(
                     data, width, height, 0,
@@ -324,16 +333,15 @@ void Model::setUpTextureArray(uint32_t &textureArray, const std::vector<std::str
                                 TEX_WIDTH, TEX_HEIGHT, 1,
                                 FORMAT, GL_UNSIGNED_BYTE,
                                 resizedData.data());
-            }
-            else {
+            } else
+            {
                 glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i,
                                 TEX_WIDTH, TEX_HEIGHT, 1,
                                 FORMAT, GL_UNSIGNED_BYTE,
                                 data);
             }
             stbi_image_free(data);
-        }
-        else
+        } else
         {
             std::vector<unsigned char> white(TEX_WIDTH * TEX_HEIGHT * channels, 255);
             glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i,
@@ -351,199 +359,219 @@ void Model::setUpTextureArray(uint32_t &textureArray, const std::vector<std::str
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
-    void Model::setupPaths(aiMaterial *material, GpuMaterial &currentMaterial) {
-        aiString str;
-        if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
-        {
-            material->GetTexture(aiTextureType_DIFFUSE, 0, &str);
-            std::string texPath = str.C_Str();
+void Model::setupPaths(aiMaterial *material, GpuMaterial &currentMaterial)
+{
+    aiString str;
 
-            if (diffusePathToIndex.find(texPath) == diffusePathToIndex.end())
-            {
-                diffusePathToIndex[texPath] = diffuseTexturePaths.size();
-                diffuseTexturePaths.push_back(texPath);
-            }
-            currentMaterial.diffuseTexLayer = diffusePathToIndex[texPath];
-            currentMaterial.hasDiffuse = 1;
-        }
+    for (int i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE); ++i)
+    {
+        material->GetTexture(aiTextureType_DIFFUSE, i, &str);
+        std::string texPath = str.C_Str();
 
-        if (material->GetTextureCount(aiTextureType_SPECULAR) > 0)
+        if (diffusePathToIndex.find(texPath) == diffusePathToIndex.end())
         {
-            material->GetTexture(aiTextureType_SPECULAR, 0, &str);
-            std::string texPath = str.C_Str();
-            if (specularPathToIndex.find(texPath) == specularPathToIndex.end())
-            {
-                specularPathToIndex[texPath] = specularTexturePaths.size();
-                specularTexturePaths.push_back(texPath);
-            }
-            currentMaterial.specularTexLayer = specularPathToIndex[texPath];
-            currentMaterial.hasSpecular = 1;
+            diffusePathToIndex[texPath] = diffuseTexturePaths.size();
+            diffuseTexturePaths.push_back(texPath);
         }
-
-        if (material->GetTextureCount(aiTextureType_EMISSIVE) > 0)
-        {
-            material->GetTexture(aiTextureType_EMISSIVE, 0, &str);
-            std::string texPath = str.C_Str();
-            if (emissivePathToIndex.find(texPath) == emissivePathToIndex.end())
-            {
-                emissivePathToIndex[texPath] = emissiveTexturePaths.size();
-                emissiveTexturePaths.push_back(texPath);
-            }
-            currentMaterial.emissiveTexLayer = emissivePathToIndex[texPath];
-            currentMaterial.hasEmissive = 1;
-        }
-
-        if (material->GetTextureCount(aiTextureType_HEIGHT) > 0)
-        {
-            material->GetTexture(aiTextureType_HEIGHT, 0, &str);
-            std::string texPath = str.C_Str();
-            if (heightPathToIndex.find(texPath) == heightPathToIndex.end())
-            {
-                heightPathToIndex[texPath] = heightTexturePaths.size();
-                heightTexturePaths.push_back(texPath);
-            }
-            currentMaterial.heightTexLayer = heightPathToIndex[texPath];
-            currentMaterial.hasHeight = 1;
-        }
-
-        if (material->GetTextureCount(aiTextureType_NORMALS) > 0)
-        {
-            material->GetTexture(aiTextureType_NORMALS, 0, &str);
-            std::string texPath = str.C_Str();
-            if (normalPathToIndex.find(texPath) == normalPathToIndex.end())
-            {
-                normalPathToIndex[texPath] = normalTexturePaths.size();
-                normalTexturePaths.push_back(texPath);
-            }
-            currentMaterial.normalTexLayer = normalPathToIndex[texPath];
-            currentMaterial.hasNormal = 1;
-        }
-
-        if (material->GetTextureCount(aiTextureType_OPACITY) > 0)
-        {
-            material->GetTexture(aiTextureType_OPACITY, 0, &str);
-            std::string texPath = str.C_Str();
-            if (opacityPathToIndex.find(texPath) == opacityPathToIndex.end())
-            {
-                opacityPathToIndex[texPath] = opacityTexturePaths.size();
-                opacityTexturePaths.push_back(texPath);
-            }
-            currentMaterial.opacityTexLayer = opacityPathToIndex[texPath];
-            currentMaterial.hasOpacity = 1;
-        }
-
-        if (material->GetTextureCount(aiTextureType_METALNESS) > 0)
-        {
-            material->GetTexture(aiTextureType_METALNESS, 0, &str);
-            std::string texPath = str.C_Str();
-            if (metalnessPathToIndex.find(texPath) == metalnessPathToIndex.end())
-            {
-                metalnessPathToIndex[texPath] = metalnessTexturePaths.size();
-                metalnessTexturePaths.push_back(texPath);
-            }
-            currentMaterial.metalnessTexLayer = metalnessPathToIndex[texPath];
-            currentMaterial.hasMetalness = 1;
-        }
-
-        if (material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0)
-        {
-            material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &str);
-            std::string texPath = str.C_Str();
-            if (roughnessPathToIndex.find(texPath) == roughnessPathToIndex.end())
-            {
-                roughnessPathToIndex[texPath] = roughnessTexturePaths.size();
-                roughnessTexturePaths.push_back(texPath);
-            }
-            currentMaterial.roughnessTexLayer = roughnessPathToIndex[texPath];
-            currentMaterial.hasRoughness = 1;
-        }
-
-        if (material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION) > 0)
-        {
-            material->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &str);
-            std::string texPath = str.C_Str();
-            if (ambientOcclusionPathToIndex.find(texPath) == ambientOcclusionPathToIndex.end())
-            {
-                ambientOcclusionPathToIndex[texPath] = ambientOcclusionTexturePaths.size();
-                ambientOcclusionTexturePaths.push_back(texPath);
-            }
-            currentMaterial.ambientOcclusionTexLayer = ambientOcclusionPathToIndex[texPath];
-            currentMaterial.hasAmbientOcclusion = 1;
-        }
+        currentMaterial.diffuseTexLayer = diffusePathToIndex[texPath];
+        currentMaterial.hasDiffuse = 1;
     }
 
-    void Model::debugMaterials() {
-        std::cout << "=== DEBUG MATERIALS ===" << std::endl;
-        std::cout << "Total materials: " << gpuMaterials.size() << std::endl;
+    for (int i = 0; i < material->GetTextureCount(aiTextureType_SPECULAR); ++i)
+    {
+        material->GetTexture(aiTextureType_SPECULAR, i, &str);
+        std::string texPath = str.C_Str();
+        if (specularPathToIndex.find(texPath) == specularPathToIndex.end())
+        {
+            specularPathToIndex[texPath] = specularTexturePaths.size();
+            specularTexturePaths.push_back(texPath);
+        }
+        currentMaterial.specularTexLayer = specularPathToIndex[texPath];
+        currentMaterial.hasSpecular = 1;
+    }
+
+    for (int i = 0; i < material->GetTextureCount(aiTextureType_EMISSIVE); ++i)
+    {
+        material->GetTexture(aiTextureType_EMISSIVE, i, &str);
+        std::string texPath = str.C_Str();
+        if (emissivePathToIndex.find(texPath) == emissivePathToIndex.end())
+        {
+            emissivePathToIndex[texPath] = emissiveTexturePaths.size();
+            emissiveTexturePaths.push_back(texPath);
+        }
+        currentMaterial.emissiveTexLayer = emissivePathToIndex[texPath];
+        currentMaterial.hasEmissive = 1;
+    }
+
+    for (int i = 0; i < material->GetTextureCount(aiTextureType_HEIGHT); ++i)
+    {
+        material->GetTexture(aiTextureType_HEIGHT, i, &str);
+        std::string texPath = str.C_Str();
+        if (heightPathToIndex.find(texPath) == heightPathToIndex.end())
+        {
+            heightPathToIndex[texPath] = heightTexturePaths.size();
+            heightTexturePaths.push_back(texPath);
+        }
+        currentMaterial.heightTexLayer = heightPathToIndex[texPath];
+        currentMaterial.hasHeight = 1;
+    }
+
+    for (int i = 0; i < material->GetTextureCount(aiTextureType_NORMALS); ++i)
+    {
+        material->GetTexture(aiTextureType_NORMALS, i, &str);
+        std::string texPath = str.C_Str();
+        if (normalPathToIndex.find(texPath) == normalPathToIndex.end())
+        {
+            normalPathToIndex[texPath] = normalTexturePaths.size();
+            normalTexturePaths.push_back(texPath);
+        }
+        currentMaterial.normalTexLayer = normalPathToIndex[texPath];
+        currentMaterial.hasNormal = 1;
+    }
+
+    for (int i = 0; i < material->GetTextureCount(aiTextureType_OPACITY); ++i)
+    {
+        material->GetTexture(aiTextureType_OPACITY, i, &str);
+        std::string texPath = str.C_Str();
+        if (opacityPathToIndex.find(texPath) == opacityPathToIndex.end())
+        {
+            opacityPathToIndex[texPath] = opacityTexturePaths.size();
+            opacityTexturePaths.push_back(texPath);
+        }
+        currentMaterial.opacityTexLayer = opacityPathToIndex[texPath];
+        currentMaterial.hasOpacity = 1;
+    }
+
+    for (int i = 0; i < material->GetTextureCount(aiTextureType_METALNESS); ++i)
+    {
+        material->GetTexture(aiTextureType_METALNESS, i, &str);
+        std::string texPath = str.C_Str();
+        if (metalnessPathToIndex.find(texPath) == metalnessPathToIndex.end())
+        {
+            metalnessPathToIndex[texPath] = metalnessTexturePaths.size();
+            metalnessTexturePaths.push_back(texPath);
+        }
+        currentMaterial.metalnessTexLayer = metalnessPathToIndex[texPath];
+        currentMaterial.hasMetalness = 1;
+    }
+
+    for (int i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS); ++i)
+    {
+        material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, i, &str);
+        std::string texPath = str.C_Str();
+        if (roughnessPathToIndex.find(texPath) == roughnessPathToIndex.end())
+        {
+            roughnessPathToIndex[texPath] = roughnessTexturePaths.size();
+            roughnessTexturePaths.push_back(texPath);
+        }
+        currentMaterial.roughnessTexLayer = roughnessPathToIndex[texPath];
+        currentMaterial.hasRoughness = 1;
+    }
+
+    for (int i = 0; i < material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION); ++i)
+    {
+        material->GetTexture(aiTextureType_AMBIENT_OCCLUSION, i, &str);
+        std::string texPath = str.C_Str();
+        if (ambientOcclusionPathToIndex.find(texPath) == ambientOcclusionPathToIndex.end())
+        {
+            ambientOcclusionPathToIndex[texPath] = ambientOcclusionTexturePaths.size();
+            ambientOcclusionTexturePaths.push_back(texPath);
+        }
+        currentMaterial.ambientOcclusionTexLayer = ambientOcclusionPathToIndex[texPath];
+        currentMaterial.hasAmbientOcclusion = 1;
+    }
+
+    for (int i = 0; i < material->GetTextureCount(aiTextureType_SHININESS); ++i)
+    {
+        material->GetTexture(aiTextureType_SHININESS, i, &str);
+        std::string texPath = str.C_Str();
+        if (shininessPathToIndex.find(texPath) == shininessPathToIndex.end())
+        {
+            shininessPathToIndex[texPath] = shininessTexturePaths.size();
+            shininessTexturePaths.push_back(texPath);
+        }
+        currentMaterial.shininessTexLayer = shininessPathToIndex[texPath];
+        currentMaterial.hasShininess = 1;
+    }
+}
+
+void Model::debugMaterials()
+{
+    std::cout << "=== DEBUG MATERIALS ===" << std::endl;
+    std::cout << "Total materials: " << gpuMaterials.size() << std::endl;
     std::cout << "Total render commands: " << renderCommands.size() << std::endl;
 
-    if (gpuMaterials.size() != renderCommands.size()) {
+    if (gpuMaterials.size() != renderCommands.size())
+    {
         std::cout << "WARNING: Material count != Render command count!" << std::endl;
     }
+}
 
+void Model::render(Shader &shader)
+{
+    model = glm::mat4(1.f);
+    model = glm::translate(model, position);
+    model = glm::rotate(model, glm::radians(angles.x), glm::vec3(1.f, 0.f, 0.f));
+    model = glm::rotate(model, glm::radians(angles.y), glm::vec3(0.f, 1.f, 0.f));
+    model = glm::rotate(model, glm::radians(angles.z), glm::vec3(0.f, 0.f, 1.f));
+    model = glm::scale(model, scale);
 
+    shader.setMat4("model", model);
+    shader.setVec3("aColor", color);
+
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, materialUBO);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, diffuseTexArray);
+    shader.setInt("diffuseTexArray", 1);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, specularTexArray);
+    shader.setInt("specularTexArray", 2);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, normalTexArray);
+    shader.setInt("normalTexArray", 3);
+
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, heightTexArray);
+    shader.setInt("heightTexArray", 4);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, emissiveTexArray);
+    shader.setInt("emissiveTexArray", 5);
+
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, ambientOcclusionTexArray);
+    shader.setInt("ambientOcclusionTexArray", 6);
+
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, metalnessTexArray);
+    shader.setInt("metalnessTexArray", 7);
+
+    glActiveTexture(GL_TEXTURE8);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, roughnessTexArray);
+    shader.setInt("roughnessTexArray", 8);
+
+    glActiveTexture(GL_TEXTURE9);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, opacityTexArray);
+    shader.setInt("opacityTexArray", 9);
+
+    glActiveTexture(GL_TEXTURE10);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, shininessTexArray);
+    shader.setInt("shininessTexArray", 10);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
+
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT,
+                                (void *) 0, renderCommands.size(), 0);
+
+    for (int i = 0; i < 10; ++i)
+    {
+        glActiveTexture(GL_TEXTURE1 + i);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
     }
 
-    void Model::render(Shader &shader) {
-        model = glm::mat4(1.f);
-        model = glm::translate(model, position);
-        model = glm::rotate(model, glm::radians(angles.x), glm::vec3(1.f, 0.f, 0.f));
-        model = glm::rotate(model, glm::radians(angles.y), glm::vec3(0.f, 1.f, 0.f));
-        model = glm::rotate(model, glm::radians(angles.z), glm::vec3(0.f, 0.f, 1.f));
-        model = glm::scale(model, scale);
-
-        shader.setMat4("model", model);
-        shader.setVec3("aColor", color);
-
-        glBindBufferBase(GL_UNIFORM_BUFFER, 0, materialUBO);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, diffuseTexArray);
-        shader.setInt("diffuseTexArray", 1);
-
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, specularTexArray);
-        shader.setInt("specularTexArray", 2);
-
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, normalTexArray);
-        shader.setInt("normalTexArray", 3);
-
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, heightTexArray);
-        shader.setInt("heightTexArray", 4);
-
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, emissiveTexArray);
-        shader.setInt("emissiveTexArray", 5);
-
-        glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, ambientOcclusionTexArray);
-        shader.setInt("ambientOcclusionTexArray", 6);
-
-        glActiveTexture(GL_TEXTURE7);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, metalnessTexArray);
-        shader.setInt("metalnessTexArray", 7);
-
-        glActiveTexture(GL_TEXTURE8);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, roughnessTexArray);
-        shader.setInt("roughnessTexArray", 8);
-
-        glActiveTexture(GL_TEXTURE9);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, opacityTexArray);
-        shader.setInt("opacityTexArray", 9);
-
-        glBindVertexArray(vao);
-        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
-
-        glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT,
-                                    (void *) 0, renderCommands.size(), 0);
-
-        for (int i = 0; i < 9; ++i)
-        {
-            glActiveTexture(GL_TEXTURE1 + i);
-            glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-        }
-
-        glBindVertexArray(0);
-    }
+    glBindVertexArray(0);
+}

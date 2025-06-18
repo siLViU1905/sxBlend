@@ -28,6 +28,7 @@ struct GpuMaterial
   int metalnessTexLayer;
   int roughnessTexLayer;
   int opacityTexLayer;
+  int shininessTexLayer;
   int hasDiffuse;
   int hasSpecular;
   int hasNormal;
@@ -37,7 +38,8 @@ struct GpuMaterial
   int hasMetalness;
   int hasRoughness;
   int hasOpacity;
-  char _padding[8];
+  int hasShininess;
+  //char _padding[8];
 };
 
 static_assert(sizeof(GpuMaterial) % 16 == 0);
@@ -64,6 +66,7 @@ class Model
   std::vector<std::string> metalnessTexturePaths;
   std::vector<std::string> roughnessTexturePaths;
   std::vector<std::string> opacityTexturePaths;
+  std::vector<std::string> shininessTexturePaths;
 
   std::map<std::string, int> diffusePathToIndex;
   std::map<std::string, int> specularPathToIndex;
@@ -74,6 +77,7 @@ class Model
   std::map<std::string, int> metalnessPathToIndex;
   std::map<std::string, int> roughnessPathToIndex;
   std::map<std::string, int> opacityPathToIndex;
+  std::map<std::string, int> shininessPathToIndex;
 
   void setupGpuResources();
 
@@ -95,7 +99,7 @@ public:
   Model(const char *path);
 
   uint32_t materialUBO, diffuseTexArray, specularTexArray, normalTexArray, heightTexArray,
-  emissiveTexArray, ambientOcclusionTexArray, metalnessTexArray, roughnessTexArray, opacityTexArray;
+  emissiveTexArray, ambientOcclusionTexArray, metalnessTexArray, roughnessTexArray, opacityTexArray, shininessTexArray;
 
   uint32_t vbo, ebo, vao, indirectBuffer;
 
@@ -116,5 +120,7 @@ public:
   void render(Shader &shader);
 
   void getProperties(std::ostringstream &stream);
+
+  bool hasLoaded;
 };
 #endif // __MODEL_H__

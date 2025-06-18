@@ -11,7 +11,7 @@ namespace sx
     {
         ImGui::SetNextWindowSize(menuSize, ImGuiCond_Always);
 
-        ImGui::Begin("sBlend", 0, windowFlags);
+        ImGui::Begin("sBlend", NULL, windowFlags);
 
         if (ImGui::Button("Mesh"))
             meshBtnPressed = !meshBtnPressed;
@@ -280,6 +280,8 @@ namespace sx
 
             ImGui::End();
         }
+
+        errorMenu.render();
     }
 
     MainMenu::MainMenu()
@@ -352,6 +354,8 @@ namespace sx
         }
 
         ImGui::End();
+
+
     }
 
     ObjectMenu::ObjectMenu()
@@ -388,6 +392,23 @@ namespace sx
     {
         windowFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                       ImGuiWindowFlags_NoCollapse;
+    }
+
+    void ErrorMenu::render()
+    {
+        if (!renderMenu)
+            return;
+
+        ImGui::SetNextWindowPos(position, ImGuiCond_Always);
+
+        ImGui::Begin(title.c_str(), NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+        ImGui::TextColored(ImVec4(0.8f,0.f,0.f,1.f),message.c_str());
+
+        if (ImGui::Button("Ok"))
+            renderMenu = false;
+
+        ImGui::End();
     }
 
     void MainMenu::getProperties(std::ostringstream &stream)

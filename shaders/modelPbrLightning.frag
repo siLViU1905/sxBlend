@@ -103,6 +103,7 @@ uniform sampler2DArray ambientOcclusionTexArray;
 uniform sampler2DArray metalnessTexArray;
 uniform sampler2DArray roughnessTexArray;
 uniform sampler2DArray opacityTexArray;
+uniform sampler2DArray shininessTexArray;
 
 struct GpuMaterial
 {
@@ -116,6 +117,7 @@ struct GpuMaterial
     int metalnessTexLayer;
     int roughnessTexLayer;
     int opacityTexLayer;
+    int shininessTexLayer;
     int hasDiffuse;
     int hasSpecular;
     int hasNormal;
@@ -125,6 +127,7 @@ struct GpuMaterial
     int hasMetalness;
     int hasRoughness;
     int hasOpacity;
+    int hasShininess;
 };
 
 in flat int drawID;

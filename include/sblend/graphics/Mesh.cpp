@@ -272,9 +272,8 @@ void Mesh::applyTexture(const char *filepath)
         glGenerateMipmap(GL_TEXTURE_2D);
 
         hasTexture = true;
+        stbi_image_free(pixels);
     }
-
-    stbi_image_free(pixels);
 }
 
 Mesh::~Mesh()

@@ -190,8 +190,18 @@ namespace sx
         if (mainMenu.loadRequest.type == LoadRequestType::LOAD_MODEL && !mainMenu.loadRequest.path.empty())
         {
             models.emplace_back(mainMenu.loadRequest.path.c_str());
-            mainMenu.existentModels.emplace_back("Model " + std::to_string(mainMenu.modelCounter++));
-            mainMenu.selectedModelIndicator.emplace_back(0);
+            if (models.back().hasLoaded == false)
+            {
+                mainMenu.errorMenu.renderMenu = true;
+                mainMenu.errorMenu.title = "Model loading failed";
+                mainMenu.errorMenu.message = "File not found or unsupported format";
+                models.pop_back();
+            }
+            else
+            {
+                mainMenu.existentModels.emplace_back("Model " + std::to_string(mainMenu.modelCounter++));
+                mainMenu.selectedModelIndicator.emplace_back(0);
+            }
             mainMenu.loadRequest.type = LoadRequestType::NONE;
             mainMenu.loadRequest.path.clear();
         }
@@ -222,6 +232,12 @@ namespace sx
             if (mainMenu.loadRequest.type == LoadRequestType::LOAD_TEXTURE && !mainMenu.loadRequest.path.empty())
             {
                 meshes->meshes[mainMenu.selectedMeshIndex].applyTexture(mainMenu.loadRequest.path.c_str());
+                if (meshes->meshes[mainMenu.selectedMeshIndex].hasTexture == false)
+                {
+                    mainMenu.errorMenu.renderMenu = true;
+                    mainMenu.errorMenu.title = "Texture loading failed";
+                    mainMenu.errorMenu.message = "Couldnt find file or invalid image";
+                }
                 mainMenu.loadRequest.type = LoadRequestType::NONE;
                 mainMenu.loadRequest.path.clear();
             }
@@ -289,6 +305,7 @@ namespace sx
                 glDeleteTextures(1, &delModel.metalnessTexArray);
                 glDeleteTextures(1, &delModel.roughnessTexArray);
                 glDeleteTextures(1, &delModel.opacityTexArray);
+                glDeleteTextures(1, &delModel.shininessTexArray);
                 models.erase(models.begin() + mainMenu.selectedModelIndex);
                 mainMenu.existentModels.erase(mainMenu.existentModels.begin() +
                                               mainMenu.selectedModelIndex);
@@ -516,8 +533,13 @@ namespace sx
                 mainMenu.loadRequest.type = LoadRequestType::NONE;
                 mainMenu.loadRequest.path.clear();
             }
+            else
+            {
+                mainMenu.errorMenu.renderMenu = true;
+                mainMenu.errorMenu.title = "Scene loading failed";
+                mainMenu.errorMenu.message = "File not found";
+            }
         }
-        useSkybox = mainMenu.setSkybox;
     }
 
     void Application::updatePhysics()
@@ -576,6 +598,8 @@ namespace sx
                            (float) WINDOW_HEIGHT / 2.f);
             mainMenu.lightMenu.menuSize =
                     ImVec2((float) WINDOW_WIDTH / 4.f, (float) WINDOW_HEIGHT / 2.f);
+
+            mainMenu.errorMenu.position = ImVec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 
             reflection->updateFrameBufferSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         }
@@ -824,6 +848,8 @@ namespace sx
                            (float) WINDOW_HEIGHT / 2.f);
             mainMenu.lightMenu.menuSize =
                     ImVec2((float) WINDOW_WIDTH / 4.f, (float) WINDOW_HEIGHT / 2.f);
+
+            mainMenu.errorMenu.position = ImVec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 
             reflection->updateFrameBufferSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         }
@@ -1171,6 +1197,8 @@ namespace sx
                 ImVec2((float) WINDOW_WIDTH / 4.f, (float) WINDOW_HEIGHT / 2.f);
         renderLightMenu = renderObjectMenu = false;
 
+        mainMenu.errorMenu.position = ImVec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
+
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
 
@@ -1288,6 +1316,7 @@ namespace sx
             glDeleteTextures(1, &m.metalnessTexArray);
             glDeleteTextures(1, &m.roughnessTexArray);
             glDeleteTextures(1, &m.opacityTexArray);
+            glDeleteTextures(1, &m.shininessTexArray);
         }
 
         delete application->meshes;
