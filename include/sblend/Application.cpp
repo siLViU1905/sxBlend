@@ -5,6 +5,8 @@
 #include <iostream>
 
 #include "../stb_image.h"
+#define GLM_ENABLE_EXPERIMENTAL
+#include "../glm/gtx/intersect.hpp"
 
 namespace sx
 {
@@ -196,8 +198,7 @@ namespace sx
                 mainMenu.errorMenu.title = "Model loading failed";
                 mainMenu.errorMenu.message = "File not found or unsupported format";
                 models.pop_back();
-            }
-            else
+            } else
             {
                 mainMenu.existentModels.emplace_back("Model " + std::to_string(mainMenu.modelCounter++));
                 mainMenu.selectedModelIndicator.emplace_back(0);
@@ -532,8 +533,7 @@ namespace sx
                 useSkybox = mainMenu.setSkybox;
                 mainMenu.loadRequest.type = LoadRequestType::NONE;
                 mainMenu.loadRequest.path.clear();
-            }
-            else
+            } else
             {
                 mainMenu.errorMenu.renderMenu = true;
                 mainMenu.errorMenu.title = "Scene loading failed";
@@ -960,8 +960,7 @@ namespace sx
             for (auto &m: meshes->meshes)
                 if (m.isReflective)
                     reflection->renderSurface(m, camera, projection);
-        }
-        else if (mainMenu.usePbrLightShader)
+        } else if (mainMenu.usePbrLightShader)
         {
             reflection->bind();
 
@@ -1124,6 +1123,99 @@ namespace sx
         }
     }
 
+    void Application::handleLeftClickedMouseEvent()
+    {
+        leftMouseButtonPressedThisFrame = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
+
+        if (leftMouseButtonPressedThisFrame && !leftMouseButtonPressedBeforeThisFrame && !meshes->meshes.empty())
+        {
+            const auto& view = camera.getView();
+            auto viewport = glm::vec4(0.f,0.f,WINDOW_WIDTH, WINDOW_HEIGHT);
+
+            auto winCoordNear = glm::vec3((float)mouseX, (float)WINDOW_HEIGHT - (float)mouseY, 0.f);
+            auto winCoordFar = glm::vec3((float)mouseX, (float)WINDOW_HEIGHT - (float)mouseY, 100.f);
+
+            auto worldCoordNear = glm::unProject(winCoordNear, view, projection, viewport);
+            auto worldCoordFar  = glm::unProject(winCoordFar,  view, projection, viewport);
+
+            auto rayDirection = glm::normalize(worldCoordFar - worldCoordNear);
+            glm::vec3 rayOrigin = worldCoordNear;
+
+            int i=0;
+            for (auto& m:meshes->meshes)
+            {
+                const auto& vertices = m.getVertices();
+                const auto& indices = m.getIndices();
+
+                const glm::mat4& model = m.getModel();
+
+                for (size_t j =0;j<indices.size();j+=3)
+                {
+                    glm::vec3 v0_local = vertices[indices[j]].position;
+                    glm::vec3 v1_local = vertices[indices[j + 1]].position;
+                    glm::vec3 v2_local = vertices[indices[j + 2]].position;
+
+                    glm::vec3 v0_world = glm::vec3(model * glm::vec4(v0_local, 1.0f));
+                    glm::vec3 v1_world = glm::vec3(model * glm::vec4(v1_local, 1.0f));
+                    glm::vec3 v2_world = glm::vec3(model * glm::vec4(v2_local, 1.0f));
+
+
+                    glm::vec2 barycentricCoords;
+                    float distance;
+
+                    if (glm::intersectRayTriangle(rayOrigin,
+                        rayDirection,
+                        v0_world,
+                        v1_world,
+                        v2_world,
+                        barycentricCoords,
+                        distance))
+                    {
+                        mainMenu.selectedMeshIndicator[i] = 1;
+                        return;
+                    }
+                }
+                ++i;
+            }
+        }
+        leftMouseButtonPressedBeforeThisFrame = leftMouseButtonPressedThisFrame;
+    }
+
+
+
+    glm::vec2 Application::convertToSceneCoords()
+    {
+        float winX = (float) mouseX;
+        float winY = (float) WINDOW_HEIGHT - (float) mouseY;
+        glm::vec4 viewport = glm::vec4(0.f,0.f,WINDOW_WIDTH, WINDOW_HEIGHT);
+
+        glm::vec3 nearPlanePoint = glm::unProject(
+            glm::vec3(winX, winY, 0.f),
+            camera.getView(),
+            projection,
+            viewport);
+
+        glm::vec3 farPlanePoint = glm::unProject(
+            glm::vec3(winX, winY, 100.f),
+            camera.getView(),
+            projection,
+            viewport);
+
+        glm::vec3 rayOrigin = nearPlanePoint;
+        glm::vec3 rayDirection = glm::normalize(farPlanePoint - nearPlanePoint);
+
+        if (glm::abs(rayDirection.z) < 0.0001f)
+            return glm::vec2(NAN, NAN);
+
+        float t = -rayOrigin.z / rayDirection.z;
+
+        glm::vec3 intersectionPoint = rayOrigin + t * rayDirection;
+
+        std::cout<<intersectionPoint.x << ' ' << intersectionPoint.y<<'\n';
+
+        return glm::vec2(intersectionPoint.x, intersectionPoint.y);
+    }
+
     Application::Application() : camera(window, glm::vec3(0.f, 2.f, 3.f), 2.f)
     {
         if (!glfwInit())
@@ -1268,6 +1360,8 @@ namespace sx
             updateMenuState();
 
             glfwGetCursorPos(window, &mouseX, &mouseY);
+
+            handleLeftClickedMouseEvent();
         }
     }
 

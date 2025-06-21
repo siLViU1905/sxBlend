@@ -200,6 +200,7 @@ void main()
         float distance = length(light[i].position - WorldPos);
         float attenuation = 1.0 / (distance * distance);
         vec3 radiance = light[i].color * attenuation;
+        radiance *= 8.0;
 
 
         float NDF = DistributionGGX(N, H, roughness);
@@ -228,7 +229,7 @@ void main()
         Lo += lightContribution;
     }
 
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    vec3 ambient = vec3(0.1) * albedo * ao;
     vec3 color = ambient + Lo;
 
 

@@ -26,13 +26,13 @@ namespace sx
             lightBtnPressed = !lightBtnPressed;
 
         std::string lightText =
-            useLightShader ? "Disable Lightning" : "Enable Lightning";
+                useLightShader ? "Disable Lightning" : "Enable Lightning";
 
         if (ImGui::Button(lightText.c_str()))
             useLightShader = !useLightShader;
 
         std::string pbrLightText =
-            usePbrLightShader ? "Disable PBR Lightning" : "Enable PBR Lightning";
+                usePbrLightShader ? "Disable PBR Lightning" : "Enable PBR Lightning";
 
         if (ImGui::Button(pbrLightText.c_str()))
             usePbrLightShader = !usePbrLightShader;
@@ -56,7 +56,7 @@ namespace sx
         }
 
         std::string simulationText =
-            simulationState ? "Stop Simulation" : "Start Simulation";
+                simulationState ? "Stop Simulation" : "Start Simulation";
 
         if (ImGui::Button(simulationText.c_str()))
         {
@@ -83,9 +83,9 @@ namespace sx
                 selectedMesh = MeshType::PLANE;
                 meshBtnPressed = false;
                 existentMeshes.emplace_back(
-                    "Plane " + std::to_string(meshTypeCounter[(int)selectedMesh]));
+                    "Plane " + std::to_string(meshTypeCounter[(int) selectedMesh]));
                 selectedMeshIndicator.emplace_back(0);
-                ++meshTypeCounter[(int)selectedMesh];
+                ++meshTypeCounter[(int) selectedMesh];
             }
 
             if (ImGui::Button("Circle"))
@@ -99,9 +99,9 @@ namespace sx
                 selectedMesh = MeshType::CUBE;
                 meshBtnPressed = false;
                 existentMeshes.emplace_back(
-                    "Cube " + std::to_string(meshTypeCounter[(int)selectedMesh]));
+                    "Cube " + std::to_string(meshTypeCounter[(int) selectedMesh]));
                 selectedMeshIndicator.emplace_back(0);
-                ++meshTypeCounter[(int)selectedMesh];
+                ++meshTypeCounter[(int) selectedMesh];
             }
 
             if (ImGui::Button("Sphere"))
@@ -165,9 +165,9 @@ namespace sx
                 selectedLight = LightType::POINT;
                 lightBtnPressed = false;
                 existentLights.emplace_back(
-                    "Point " + std::to_string(lightTypeCounter[(int)selectedLight]));
+                    "Point " + std::to_string(lightTypeCounter[(int) selectedLight]));
                 selectedLightIndicator.emplace_back(0);
-                ++lightTypeCounter[(int)selectedLight];
+                ++lightTypeCounter[(int) selectedLight];
             }
 
             if (ImGui::Button("PBR"))
@@ -175,9 +175,9 @@ namespace sx
                 selectedLight = LightType::PBR;
                 lightBtnPressed = false;
                 existentLights.emplace_back(
-                    "PBR " + std::to_string(lightTypeCounter[(int)selectedLight]));
+                    "PBR " + std::to_string(lightTypeCounter[(int) selectedLight]));
                 selectedLightIndicator.emplace_back(0);
-                ++lightTypeCounter[(int)selectedLight];
+                ++lightTypeCounter[(int) selectedLight];
             }
 
             ImGui::End();
@@ -192,8 +192,12 @@ namespace sx
 
         for (int i = 0; i < existentMeshes.size(); ++i)
         {
-            bool *b = (bool *)&selectedMeshIndicator[i];
-            ImGui::Checkbox(existentMeshes[i].c_str(), b);
+            bool *b = reinterpret_cast<bool *>(&selectedMeshIndicator[i]);
+            if (ImGui::Checkbox(existentMeshes[i].c_str(), b))
+                for (int j = 0; j < selectedMeshIndicator.size(); ++j)
+                    if (j != i)
+                        selectedMeshIndicator[j] = 0;
+
             if (*b)
             {
                 selectedMeshIndex = i;
@@ -201,7 +205,7 @@ namespace sx
                 deleteObject = false;
 
                 deleteObject =
-                    glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_DELETE) == GLFW_PRESS;
+                        glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_DELETE) == GLFW_PRESS;
 
                 if (ImGui::Button("Set texture"))
                 {
@@ -223,7 +227,7 @@ namespace sx
 
         for (int i = 0; i < existentModels.size(); ++i)
         {
-            bool *b = (bool *)&selectedModelIndicator[i];
+            bool *b = (bool *) &selectedModelIndicator[i];
             ImGui::Checkbox(existentModels[i].c_str(), b);
             if (*b)
             {
@@ -232,7 +236,7 @@ namespace sx
                 deleteModel = false;
 
                 deleteModel =
-                    glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_DELETE) == GLFW_PRESS;
+                        glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_DELETE) == GLFW_PRESS;
 
                 if (ImGui::Button("Delete"))
                     deleteModel = true;
@@ -250,7 +254,7 @@ namespace sx
 
         for (int i = 0; i < existentLights.size(); ++i)
         {
-            bool *b = (bool *)&selectedLightIndicator[i];
+            bool *b = (bool *) &selectedLightIndicator[i];
             ImGui::Checkbox(existentLights[i].c_str(), b);
             if (*b)
             {
@@ -259,7 +263,7 @@ namespace sx
                 deleteLight = false;
 
                 deleteLight =
-                    glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_DELETE) == GLFW_PRESS;
+                        glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_DELETE) == GLFW_PRESS;
 
                 if (ImGui::Button("Delete"))
                     deleteLight = true;
@@ -354,8 +358,6 @@ namespace sx
         }
 
         ImGui::End();
-
-
     }
 
     ObjectMenu::ObjectMenu()
@@ -401,9 +403,10 @@ namespace sx
 
         ImGui::SetNextWindowPos(position, ImGuiCond_Always);
 
-        ImGui::Begin(title.c_str(), NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin(title.c_str(), NULL,
+                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-        ImGui::TextColored(ImVec4(0.8f,0.f,0.f,1.f),message.c_str());
+        ImGui::TextColored(ImVec4(0.8f, 0.f, 0.f, 1.f), message.c_str());
 
         if (ImGui::Button("Ok"))
             renderMenu = false;

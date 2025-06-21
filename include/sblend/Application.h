@@ -58,7 +58,7 @@ namespace sx
 
         LightManager lights;
 
-        Skybox* skybox;
+        Skybox *skybox;
 
         bool useSkybox = false;
 
@@ -94,7 +94,14 @@ namespace sx
 
         void handleRightClickedMouseEventForMeshes();
 
-         void handleRightClickedMouseEventForModels();
+        void handleRightClickedMouseEventForModels();
+
+        void handleLeftClickedMouseEvent();
+
+        bool leftMouseButtonPressedThisFrame = false;
+        bool leftMouseButtonPressedBeforeThisFrame = false;
+
+        glm::vec2 convertToSceneCoords();
 
         double mouseX, mouseY;
 
