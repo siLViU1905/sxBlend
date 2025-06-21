@@ -1,5 +1,9 @@
 #include "Mesh.h"
+
+#include <iostream>
+
 #include "../../stb_image.h"
+#include "glm/gtx/norm.inl"
 
 std::unordered_map<MeshType, std::string> Mesh::MeshTypesMap;
 std::unordered_map<std::string, MeshType> Mesh::MeshStringMap;
@@ -45,6 +49,8 @@ Mesh::Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_i
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, bitangent));
 
     glBindVertexArray(0);
+
+    calculateBounidngSphere();
 }
 
 Mesh::Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_indices, const std::vector<Texture> &_textures) : vertices(_vertices), indices(_indices),
@@ -296,6 +302,26 @@ const std::vector<uint32_t> & Mesh::getIndices() const
 const glm::vec3 &Mesh::getPosition() const
 {
     return position;
+}
+
+void Mesh::calculateBounidngSphere()
+{
+    glm::vec3 center(0.f);
+
+    for (const auto& vertex:vertices)
+        center += vertex.position;
+    boundingSphereCenter = center / (float)vertices.size();
+
+    float maxRadius = 0.f;
+
+    for (const auto& vertex:vertices)
+    {
+        float dist = glm::length2(vertex.position - boundingSphereCenter);
+        if (dist>maxRadius)
+            maxRadius = dist;
+    }
+
+    boundingSphereRadius = std::sqrt(maxRadius);
 }
 
 void Mesh::setPosition(const glm::vec3 &position)

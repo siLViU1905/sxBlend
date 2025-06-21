@@ -46,6 +46,7 @@ class Mesh
 
     GLenum renderMode;
 
+    void calculateBounidngSphere();
 public:
     Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_indices, GLenum renderMode = GL_TRIANGLES);
 
@@ -105,6 +106,9 @@ public:
     const std::vector<uint32_t>& getIndices() const;
 
     const glm::vec3 &getPosition() const;
+
+    glm::vec3 boundingSphereCenter;
+    float boundingSphereRadius;
 
 
     void setPosition(const glm::vec3 &position);

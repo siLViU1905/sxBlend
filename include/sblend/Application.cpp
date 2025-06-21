@@ -1129,50 +1129,69 @@ namespace sx
 
         if (leftMouseButtonPressedThisFrame && !leftMouseButtonPressedBeforeThisFrame && !meshes->meshes.empty())
         {
-            const auto& view = camera.getView();
-            auto viewport = glm::vec4(0.f,0.f,WINDOW_WIDTH, WINDOW_HEIGHT);
+            const auto &view = camera.getView();
+            auto viewport = glm::vec4(0.f, 0.f, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-            auto winCoordNear = glm::vec3((float)mouseX, (float)WINDOW_HEIGHT - (float)mouseY, 0.f);
-            auto winCoordFar = glm::vec3((float)mouseX, (float)WINDOW_HEIGHT - (float)mouseY, 100.f);
+            auto winCoordNear = glm::vec3((float) mouseX, (float) WINDOW_HEIGHT - (float) mouseY, 0.f);
+            auto winCoordFar = glm::vec3((float) mouseX, (float) WINDOW_HEIGHT - (float) mouseY, 1.f);
 
             auto worldCoordNear = glm::unProject(winCoordNear, view, projection, viewport);
-            auto worldCoordFar  = glm::unProject(winCoordFar,  view, projection, viewport);
+            auto worldCoordFar = glm::unProject(winCoordFar, view, projection, viewport);
 
             auto rayDirection = glm::normalize(worldCoordFar - worldCoordNear);
             glm::vec3 rayOrigin = worldCoordNear;
 
-            int i=0;
-            for (auto& m:meshes->meshes)
+            int i = 0;
+            for (auto &m: meshes->meshes)
             {
-                const auto& vertices = m.getVertices();
-                const auto& indices = m.getIndices();
+                const glm::mat4 &model = m.getModel();
 
-                const glm::mat4& model = m.getModel();
-
-                for (size_t j =0;j<indices.size();j+=3)
+                if (m.type == MeshType::SPHERE || m.type == MeshType::TORUS)
                 {
-                    glm::vec3 v0_local = vertices[indices[j]].position;
-                    glm::vec3 v1_local = vertices[indices[j + 1]].position;
-                    glm::vec3 v2_local = vertices[indices[j + 2]].position;
+                    auto sphereCenterWorld = glm::vec3(model * glm::vec4(m.boundingSphereCenter, 1.f));
 
-                    glm::vec3 v0_world = glm::vec3(model * glm::vec4(v0_local, 1.0f));
-                    glm::vec3 v1_world = glm::vec3(model * glm::vec4(v1_local, 1.0f));
-                    glm::vec3 v2_world = glm::vec3(model * glm::vec4(v2_local, 1.0f));
+                    auto maxScale = glm::max(glm::max(m.scale.x, m.scale.y), m.scale.z);
 
+                    float sphereRadiusWorld = m.boundingSphereRadius * maxScale;
 
-                    glm::vec2 barycentricCoords;
-                    float distance;
+                    float outDist;
 
-                    if (glm::intersectRayTriangle(rayOrigin,
-                        rayDirection,
-                        v0_world,
-                        v1_world,
-                        v2_world,
-                        barycentricCoords,
-                        distance))
+                    if (glm::intersectRaySphere(rayOrigin, rayDirection,
+                                                sphereCenterWorld, sphereRadiusWorld, outDist))
                     {
                         mainMenu.selectedMeshIndicator[i] = 1;
                         return;
+                    }
+                } else
+                {
+                     const auto& vertices = m.getVertices();
+                     const auto& indices = m.getIndices();
+
+                    for (size_t j = 0; j < indices.size(); j += 3)
+                    {
+                        glm::vec3 v0_local = vertices[indices[j]].position;
+                        glm::vec3 v1_local = vertices[indices[j + 1]].position;
+                        glm::vec3 v2_local = vertices[indices[j + 2]].position;
+
+                        glm::vec3 v0_world = glm::vec3(model * glm::vec4(v0_local, 1.0f));
+                        glm::vec3 v1_world = glm::vec3(model * glm::vec4(v1_local, 1.0f));
+                        glm::vec3 v2_world = glm::vec3(model * glm::vec4(v2_local, 1.0f));
+
+
+                        glm::vec2 barycentricCoords;
+                        float distance;
+
+                        if (glm::intersectRayTriangle(rayOrigin,
+                                                      rayDirection,
+                                                      v0_world,
+                                                      v1_world,
+                                                      v2_world,
+                                                      barycentricCoords,
+                                                      distance))
+                        {
+                            mainMenu.selectedMeshIndicator[i] = 1;
+                            return;
+                        }
                     }
                 }
                 ++i;
@@ -1181,40 +1200,6 @@ namespace sx
         leftMouseButtonPressedBeforeThisFrame = leftMouseButtonPressedThisFrame;
     }
 
-
-
-    glm::vec2 Application::convertToSceneCoords()
-    {
-        float winX = (float) mouseX;
-        float winY = (float) WINDOW_HEIGHT - (float) mouseY;
-        glm::vec4 viewport = glm::vec4(0.f,0.f,WINDOW_WIDTH, WINDOW_HEIGHT);
-
-        glm::vec3 nearPlanePoint = glm::unProject(
-            glm::vec3(winX, winY, 0.f),
-            camera.getView(),
-            projection,
-            viewport);
-
-        glm::vec3 farPlanePoint = glm::unProject(
-            glm::vec3(winX, winY, 100.f),
-            camera.getView(),
-            projection,
-            viewport);
-
-        glm::vec3 rayOrigin = nearPlanePoint;
-        glm::vec3 rayDirection = glm::normalize(farPlanePoint - nearPlanePoint);
-
-        if (glm::abs(rayDirection.z) < 0.0001f)
-            return glm::vec2(NAN, NAN);
-
-        float t = -rayOrigin.z / rayDirection.z;
-
-        glm::vec3 intersectionPoint = rayOrigin + t * rayDirection;
-
-        std::cout<<intersectionPoint.x << ' ' << intersectionPoint.y<<'\n';
-
-        return glm::vec2(intersectionPoint.x, intersectionPoint.y);
-    }
 
     Application::Application() : camera(window, glm::vec3(0.f, 2.f, 3.f), 2.f)
     {

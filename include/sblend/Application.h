@@ -101,8 +101,6 @@ namespace sx
         bool leftMouseButtonPressedThisFrame = false;
         bool leftMouseButtonPressedBeforeThisFrame = false;
 
-        glm::vec2 convertToSceneCoords();
-
         double mouseX, mouseY;
 
         Application();
