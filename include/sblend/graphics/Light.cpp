@@ -20,6 +20,8 @@ namespace sx
         constant = 1.f;
         linear = 0.2f;
         quadratic = 0.032f;
+        view = glm::lookAt(position, glm::vec3(0.f), glm::vec3(0.f,1.f,0.f));
+        projection = glm::ortho(-5.f, 5.f, -5.f, 5.f, 0.1f, 20.f);
     }
 
     void Light::apply_to_shader(Shader &shader, int index)
@@ -34,11 +36,17 @@ namespace sx
             shader.setFloat(("light[" + std::to_string(index) + "].linear").c_str(), linear);
             shader.setFloat(("light[" + std::to_string(index) + "].constant").c_str(), constant);
             shader.setFloat(("light[" + std::to_string(index) + "].quadratic").c_str(), quadratic);
+            view = glm::lookAt(position, glm::vec3(0.f), glm::vec3(0.f,1.f,0.f));
+            shader.setMat4(("lightView[" + std::to_string(index) + "]").c_str(), view);
+            shader.setMat4(("lightProjection[" + std::to_string(index) + "]").c_str(), projection);
         }
         else
         {
             shader.setVec3(("light[" + std::to_string(index) + "].position").c_str(), position);
             shader.setVec3(("light[" + std::to_string(index) + "].color").c_str(), color);
+            view = glm::lookAt(position, glm::vec3(0.f), glm::vec3(0.f,1.f,0.f));
+            shader.setMat4(("lightView[" + std::to_string(index) + "]").c_str(), view);
+            shader.setMat4(("lightProjection[" + std::to_string(index) + "]").c_str(), projection);
         }
     }
     

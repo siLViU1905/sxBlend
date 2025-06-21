@@ -43,6 +43,8 @@ namespace sx
         float quadratic;
         float cutoff;
 
+        glm::mat4 view, projection;
+
         Light(LightType type);
 
         void apply_to_shader(Shader &shader, int index = 0);

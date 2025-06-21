@@ -43,7 +43,11 @@ namespace sx
             castShadows = !castShadows;
 
         if (ImGui::Button("Set Skybox"))
+        {
             setSkybox = !setSkybox;
+            loadRequest.type = LoadRequestType::LOAD_SKYBOX;
+            fileDialog.Open();
+        }
 
         if (ImGui::Button("Save"))
             renderSaveMenu = true;

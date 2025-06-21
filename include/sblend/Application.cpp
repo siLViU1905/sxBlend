@@ -540,6 +540,33 @@ namespace sx
                 mainMenu.errorMenu.message = "File not found";
             }
         }
+
+        if (mainMenu.loadRequest.type == LoadRequestType::LOAD_SKYBOX && !mainMenu.loadRequest.path.empty())
+        {
+            size_t extensionPos = mainMenu.loadRequest.path.find_last_of('.');
+            if (extensionPos == std::string::npos)
+            {
+                mainMenu.errorMenu.renderMenu = true;
+                mainMenu.errorMenu.title = "Skybox images loading failed";
+                mainMenu.errorMenu.message = "File not found";
+            }
+            else
+            {
+                std::string imagesType =mainMenu.loadRequest.path.substr(extensionPos);
+                std::string directory =  mainMenu.loadRequest.path.substr(0, mainMenu.loadRequest.path.find_last_of("/\\") + 1);
+                std::vector<std::string> faces;
+                faces.push_back(mainMenu.loadRequest.path);
+                faces.push_back(directory + "left" + imagesType);
+                faces.push_back(directory + "top" + imagesType);
+                faces.push_back(directory + "bottom" + imagesType);
+                faces.push_back(directory + "front" + imagesType);
+                faces.push_back(directory + "back" + imagesType);
+                skybox->loadTexture(faces);
+                useSkybox = mainMenu.setSkybox;
+            }
+            mainMenu.loadRequest.type = LoadRequestType::NONE;
+            mainMenu.loadRequest.path.clear();
+        }
     }
 
     void Application::updatePhysics()
@@ -1305,14 +1332,14 @@ namespace sx
         MeshManager::generateCubeMesh(vertices, indices);
 
         skybox = new Skybox(vertices, indices);
-        skybox->loadTexture({
+        /*skybox->loadTexture({
             "../../textures/skybox/right.jpg",
             "../../textures/skybox/left.jpg",
             "../../textures/skybox/top.jpg",
             "../../textures/skybox/bottom.jpg",
             "../../textures/skybox/front.jpg",
             "../../textures/skybox/back.jpg"
-        });
+        });*/
 
         Mesh::MeshTypesMap.emplace(MeshType::PLANE, "PLANE");
         Mesh::MeshTypesMap.emplace(MeshType::CIRCLE, "CIRCLE");

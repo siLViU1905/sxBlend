@@ -18,7 +18,8 @@ namespace sx
         NONE,
         LOAD_SCENE,
         LOAD_MODEL,
-        LOAD_TEXTURE
+        LOAD_TEXTURE,
+        LOAD_SKYBOX
     };
 
     struct LoadRequest
