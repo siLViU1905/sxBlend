@@ -1231,7 +1231,7 @@ namespace sx
     {
         leftMouseButtonPressedThisFrame = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
 
-        if (leftMouseButtonPressedThisFrame && !leftMouseButtonPressedBeforeThisFrame && !meshes->meshes.empty())
+        if (leftMouseButtonPressedThisFrame && !leftMouseButtonPressedBeforeThisFrame && (!meshes->meshes.empty() || !models.empty()))
         {
             const auto &view = camera.getView();
             auto viewport = glm::vec4(0.f, 0.f, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -1297,6 +1297,29 @@ namespace sx
                             return;
                         }
                     }
+                }
+                ++i;
+            }
+
+            i = 0;
+
+            for (auto &m : models)
+            {
+                const auto &model = m.getModel();
+
+                auto sphereCenterWorld = glm::vec3(model * glm::vec4(m.boundingSphereCenter, 1.f));
+
+                auto maxScale = glm::max(glm::max(m.scale.x, m.scale.y), m.scale.z);
+
+                float sphereRadiusWorld = m.boundingSphereRadius * maxScale;
+
+                float outDist;
+
+                if (glm::intersectRaySphere(rayOrigin, rayDirection,
+                                            sphereCenterWorld, sphereRadiusWorld, outDist))
+                {
+                    mainMenu.selectedModelIndicator[i] = 1;
+                    return;
                 }
                 ++i;
             }

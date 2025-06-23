@@ -3,6 +3,7 @@
 #include <iostream>
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "../../stb_image_resize.h"
+#include "glm/gtx/norm.inl"
 
 void Model::loadModel(const std::string &path)
 {
@@ -156,7 +157,9 @@ Model::Model(const char *path) : path(path)
 
     setupGpuResources();
 
-    debugMaterials();
+    calculateBoundingSphere();
+
+    //debugMaterials();
 }
 
 const glm::mat4 &Model::getModel()
@@ -169,6 +172,26 @@ const glm::mat4 &Model::getModel()
     model = glm::scale(model, scale);
 
     return model;
+}
+
+void Model::calculateBoundingSphere()
+{
+     glm::vec3 center(0.f);
+
+    for (const auto& vertex:allVertices)
+        center += vertex.position;
+    boundingSphereCenter = center / (float)allVertices.size();
+
+    float maxRadius = 0.f;
+
+    for (const auto& vertex:allVertices)
+    {
+        float dist = glm::length2(vertex.position - boundingSphereCenter);
+        if (dist>maxRadius)
+            maxRadius = dist;
+    }
+
+    boundingSphereRadius = std::sqrt(maxRadius);
 }
 
 void Model::getProperties(std::ostringstream &stream)

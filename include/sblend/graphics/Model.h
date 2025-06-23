@@ -117,6 +117,11 @@ public:
   float roughness;
   float ao;
 
+  glm::vec3 boundingSphereCenter;
+  float boundingSphereRadius;
+
+  void calculateBoundingSphere();
+
   void render(Shader &shader);
 
   void getProperties(std::ostringstream &stream);
