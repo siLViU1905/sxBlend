@@ -488,7 +488,7 @@ namespace sx
                         mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]++;
                         break;
 
-                         case MeshType::CYLINDER:
+                    case MeshType::CYLINDER:
                         MeshManager::generateCylinderMesh(vertices, indices, slices);
                         meshes->meshes.emplace_back(vertices, indices);
                         mainMenu.existentMeshes.emplace_back(
@@ -1149,23 +1149,28 @@ namespace sx
 
             xOffset *= 0.1f;
             yOffset *= 0.1f;
+
+            const float TRANSLATION_SENSITIVITY = 0.07f;
+            const float SCALE_SENSITIVITY = 0.05f;
+            const float ROTATION_SENSITIVITY = 0.5f;
+
             if (mainMenu.objectMenu.translateObjectWithMouse)
             {
-                meshes->meshes[mainMenu.selectedMeshIndex].position.y += yOffset;
+                meshes->meshes[mainMenu.selectedMeshIndex].position.y += -yOffset * TRANSLATION_SENSITIVITY;
 
                 if (camera.getPosition().z > 0.f)
-                    meshes->meshes[mainMenu.selectedMeshIndex].position.x += xOffset;
+                    meshes->meshes[mainMenu.selectedMeshIndex].position.x += xOffset * TRANSLATION_SENSITIVITY;
                 else
-                    meshes->meshes[mainMenu.selectedMeshIndex].position.z += xOffset;
+                    meshes->meshes[mainMenu.selectedMeshIndex].position.z += xOffset * TRANSLATION_SENSITIVITY;
             }
             else if (mainMenu.objectMenu.scaleObjectWithMouse)
             {
-                meshes->meshes[mainMenu.selectedMeshIndex].scale.y += yOffset;
+                meshes->meshes[mainMenu.selectedMeshIndex].scale.y += yOffset * SCALE_SENSITIVITY;
 
                 if (camera.getPosition().z > 0.f)
-                    meshes->meshes[mainMenu.selectedMeshIndex].scale.x += xOffset;
+                    meshes->meshes[mainMenu.selectedMeshIndex].scale.x += xOffset * SCALE_SENSITIVITY;
                 else
-                    meshes->meshes[mainMenu.selectedMeshIndex].scale.z += xOffset;
+                    meshes->meshes[mainMenu.selectedMeshIndex].scale.z += xOffset * SCALE_SENSITIVITY;
             }
             else if (mainMenu.objectMenu.rotateObjectWithMouse)
             {
