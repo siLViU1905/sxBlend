@@ -21,7 +21,7 @@ class Reflection {
 
   glm::mat4 calculateReflectionViewMatrix(const Camera& camera, float surfaceHeight);
 
-  void renderSurface(Mesh& surfaceMesh, const Camera& mainCamera, const glm::mat4& mainProjection);
+  void renderSurface(Mesh& surfaceMesh, const Camera& mainCamera, const glm::mat4& mainProjection, int skyboxTex = -1);
 
    void updateFrameBufferSize(int newWidth, int newHeight);
 

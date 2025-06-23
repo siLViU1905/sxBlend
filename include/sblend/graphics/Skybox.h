@@ -15,6 +15,8 @@ public:
 
   void render(Shader& shader);
 
+  int getTextureID() const;
+
   ~Skybox();
 };
 

@@ -888,9 +888,16 @@ namespace sx
             for (auto &m : models)
                 m.render(shaders->modelBasicShader);
 
-            for (auto &m : meshes->meshes)
-                if (m.isReflective)
-                    reflection->renderSurface(m, camera, projection);
+            if (!useSkybox)
+            {
+                for (auto &m : meshes->meshes)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection);
+            }
+            else
+                for (auto &m : meshes->meshes)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection, skybox->getTextureID());
         }
 
         newMenuFrame();

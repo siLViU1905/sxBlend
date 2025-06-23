@@ -20,6 +20,11 @@ namespace sx {
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
     }
+    
+    int Skybox::getTextureID() const
+    {
+        return texture.id;
+    }
 
     Skybox::~Skybox()
     {
