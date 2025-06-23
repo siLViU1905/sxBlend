@@ -780,9 +780,16 @@ namespace sx
             for (auto &m : models)
                 m.render(shaders->modelLightningShader);
 
-            for (auto &m : meshes->meshes)
-                if (m.isReflective)
-                    reflection->renderSurface(m, camera, projection);
+            if (!useSkybox)
+            {
+                for (auto &m : meshes->meshes)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection);
+            }
+            else
+                for (auto &m : meshes->meshes)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection, skybox->getTextureID());
         }
         else if (mainMenu.usePbrLightShader)
         {
@@ -837,9 +844,16 @@ namespace sx
             for (auto &m : models)
                 m.render(shaders->modelPbrLightningShader);
 
-            for (auto &m : meshes->meshes)
-                if (m.isReflective)
-                    reflection->renderSurface(m, camera, projection);
+            if (!useSkybox)
+            {
+                for (auto &m : meshes->meshes)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection);
+            }
+            else
+                for (auto &m : meshes->meshes)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection, skybox->getTextureID());
         }
         else
         {
@@ -1059,9 +1073,16 @@ namespace sx
             for (auto &m : models)
                 m.render(shaders->modelLightningShader);
 
-            for (auto &m : meshes->meshes)
-                if (m.isReflective)
-                    reflection->renderSurface(m, camera, projection);
+             if (!useSkybox)
+            {
+                for (auto &m : meshes->meshes)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection);
+            }
+            else
+                for (auto &m : meshes->meshes)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection, skybox->getTextureID());
         }
         else if (mainMenu.usePbrLightShader)
         {
@@ -1113,9 +1134,16 @@ namespace sx
             for (auto &m : models)
                 m.render(shaders->modelPbrLightningShader);
 
-            for (auto &m : meshes->meshes)
-                if (m.isReflective)
-                    reflection->renderSurface(m, camera, projection);
+            if (!useSkybox)
+            {
+                for (auto &m : meshes->meshes)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection);
+            }
+            else
+                for (auto &m : meshes->meshes)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection, skybox->getTextureID());
         }
 
         newMenuFrame();
