@@ -158,7 +158,7 @@ namespace sx
 
         bool setSkybox = false;
 
-        bool newSphere, newCircle, newTorus;
+        bool newSphere, newCircle, newTorus, newCone = false, newCylinder = false;
 
         int slices, stacks;
 

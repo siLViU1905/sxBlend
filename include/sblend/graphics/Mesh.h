@@ -11,6 +11,8 @@ enum class MeshType
     PLANE,
     CIRCLE,
     CUBE,
+    CONE,
+    CYLINDER,
     SPHERE,
     TORUS
 };

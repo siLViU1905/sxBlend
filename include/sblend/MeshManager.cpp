@@ -2,17 +2,12 @@
 
 namespace sx
 {
-
     MeshManager::MeshManager()
     {
-        // generateSphereMesh();
-
-        // m_meshes.emplace_back(planeVertices, planeIndices);
-        // m_meshes.emplace_back(cubeVertices, cubeIndices);
-        // m_meshes.emplace_back(sphereVertices, sphereIndices);
     }
 
-    void MeshManager::calculateTangentBitangent(const Vertex &v0, const Vertex &v1, const Vertex &v2, glm::vec3 &tangent, glm::vec3 &bitangent)
+    void MeshManager::calculateTangentBitangent(const Vertex &v0, const Vertex &v1, const Vertex &v2,
+                                                glm::vec3 &tangent, glm::vec3 &bitangent)
     {
         glm::vec3 edge1 = v1.position - v0.position;
         glm::vec3 edge2 = v2.position - v0.position;
@@ -42,7 +37,6 @@ namespace sx
             vertex.bitangent = glm::vec3(0.0f);
         }
 
-        // Calculăm pentru fiecare triunghi
         for (size_t i = 0; i < indices.size(); i += 3)
         {
             uint32_t i0 = indices[i];
@@ -52,7 +46,6 @@ namespace sx
             glm::vec3 tangent, bitangent;
             calculateTangentBitangent(vertices[i0], vertices[i1], vertices[i2], tangent, bitangent);
 
-            // Acumulăm tangent și bitangent pentru fiecare vertex
             vertices[i0].tangent += tangent;
             vertices[i0].bitangent += bitangent;
             vertices[i1].tangent += tangent;
@@ -61,13 +54,11 @@ namespace sx
             vertices[i2].bitangent += bitangent;
         }
 
-        // Normalizăm și ortogonalizăm tangent space
         for (auto &vertex : vertices)
         {
-            // Gram-Schmidt orthogonalization
+
             vertex.tangent = glm::normalize(vertex.tangent - vertex.normal * glm::dot(vertex.normal, vertex.tangent));
 
-            // Recalculăm bitangent pentru a fi perpendicular pe normal și tangent
             vertex.bitangent = glm::cross(vertex.normal, vertex.tangent);
             vertex.bitangent = glm::normalize(vertex.bitangent);
         }
@@ -108,167 +99,348 @@ namespace sx
     void MeshManager::generatePlaneMesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices)
     {
         vertices = {
-            // Bottom-left vertex
-            {
-                {-1.0f, 0.0f, -1.0f}, // position
-                {0.0f, 1.0f, 0.0f},   // normal (pointing towards +Y)
-                {0.0f, 0.0f},         // texCoords
-                {1.0f, 0.0f, 0.0f},   // tangent (pointing towards +X)
-                {0.0f, 0.0f, 1.0f}    // bitangent (pointing towards +Z)
-            },
-            // Bottom-right vertex
-            {
-                {1.0f, 0.0f, -1.0f}, // position
-                {0.0f, 1.0f, 0.0f},  // normal
-                {1.0f, 0.0f},        // texCoords
-                {1.0f, 0.0f, 0.0f},  // tangent
-                {0.0f, 0.0f, 1.0f}   // bitangent
-            },
-            // Top-right vertex
-            {
-                {1.0f, 0.0f, 1.0f}, // position
-                {0.0f, 1.0f, 0.0f}, // normal
-                {1.0f, 1.0f},       // texCoords
-                {1.0f, 0.0f, 0.0f}, // tangent
-                {0.0f, 0.0f, 1.0f}  // bitangent
-            },
-            // Top-left vertex
-            {
-                {-1.0f, 0.0f, 1.0f}, // position
-                {0.0f, 1.0f, 0.0f},  // normal
-                {0.0f, 1.0f},        // texCoords
-                {1.0f, 0.0f, 0.0f},  // tangent
-                {0.0f, 0.0f, 1.0f}   // bitangent
-            }};
+
+            {{-1.0f, 0.0f, -1.0f},
+             {0.0f, 1.0f, 0.0f},
+             {0.0f, 0.0f},
+             {1.0f, 0.0f, 0.0f},
+             {0.0f, 0.0f, 1.0f}},
+
+            {{1.0f, 0.0f, -1.0f},
+             {0.0f, 1.0f, 0.0f},
+             {1.0f, 0.0f},
+             {1.0f, 0.0f, 0.0f},
+             {0.0f, 0.0f, 1.0f}},
+
+            {{1.0f, 0.0f, 1.0f},
+             {0.0f, 1.0f, 0.0f},
+             {1.0f, 1.0f},
+             {1.0f, 0.0f, 0.0f},
+             {0.0f, 0.0f, 1.0f}},
+
+            {{-1.0f, 0.0f, 1.0f},
+             {0.0f, 1.0f, 0.0f},
+             {0.0f, 1.0f},
+             {1.0f, 0.0f, 0.0f},
+             {0.0f, 0.0f, 1.0f}}};
 
         indices = {
-            0, 1, 2, // First triangle (bottom-left, bottom-right, top-right)
-            0, 2, 3  // Second triangle (bottom-left, top-right, top-left)
-        };
+            0, 1, 2,
+            0, 2, 3};
     }
 
     void MeshManager::generateCircleMesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, int segments)
     {
         float radius = 1.0f;
 
-        // Vertex central
-        vertices.push_back({
-            {0.0f, 0.0f, 0.0f}, // position (center)
-            {0.0f, 0.0f, 1.0f}, // normal (pointing towards +Z)
-            {0.5f, 0.5f},       // texCoords (center of texture)
-            {1.0f, 0.0f, 0.0f}, // tangent
-            {0.0f, 1.0f, 0.0f}  // bitangent
-        });
+        vertices.push_back({{0.0f, 0.0f, 0.0f},
+                            {0.0f, 0.0f, 1.0f},
+                            {0.5f, 0.5f},
+                            {1.0f, 0.0f, 0.0f},
+                            {0.0f, 1.0f, 0.0f}});
 
-        // Generate vertices around the circle
         for (int i = 0; i < segments; ++i)
         {
             float angle = 2.0f * 3.14f * i / segments;
             float x = radius * cos(angle);
             float y = radius * sin(angle);
 
-            // UV coordinates mapped from [-1,1] to [0,1]
             float u = (x + 1.0f) * 0.5f;
             float v = (y + 1.0f) * 0.5f;
 
-            // Calculăm tangent și bitangent pentru cercul în planul XY
             glm::vec3 tangent = glm::vec3(-std::sin(angle), std::cos(angle), 0.0f);
             glm::vec3 bitangent = glm::vec3(std::cos(angle), std::sin(angle), 0.0f);
 
-            vertices.push_back({
-                {x, y, 0.0f},       // position
-                {0.0f, 0.0f, 1.0f}, // normal (pointing towards +Z)
-                {u, v},             // texCoords
-                tangent,            // tangent
-                bitangent           // bitangent
-            });
+            vertices.push_back({{x, y, 0.0f},
+                                {0.0f, 0.0f, 1.0f},
+                                {u, v},
+                                tangent,
+                                bitangent});
         }
-
         // Generate indices for triangles
         for (int i = 0; i < segments; ++i)
         {
-            indices.push_back(0);                      // center vertex
-            indices.push_back(i + 1);                  // current edge vertex
-            indices.push_back((i + 1) % segments + 1); // next edge vertex (wraps around)
+            indices.push_back(0);
+            indices.push_back(i + 1);
+            indices.push_back((i + 1) % segments + 1);
         }
     }
 
     void MeshManager::generateCubeMesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices)
     {
-         float halfSize = 0.5f;
+        float halfSize = 0.5f;
 
         vertices = {
             // Front face (Z+)
-            {{-halfSize, -halfSize, halfSize}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // 0
-            {{halfSize, -halfSize, halfSize}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},  // 1
-            {{halfSize, halfSize, halfSize}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},   // 2
-            {{-halfSize, halfSize, halfSize}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},  // 3
+            {
+                {-halfSize, -halfSize, halfSize}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // 0
+            {{halfSize, -halfSize, halfSize}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+            // 1
+            {{halfSize, halfSize, halfSize}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+            // 2
+            {{-halfSize, halfSize, halfSize}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+            // 3
 
             // Back face (Z-)
-            {{-halfSize, -halfSize, -halfSize}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // 4
-            {{halfSize, -halfSize, -halfSize}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},  // 5
-            {{halfSize, halfSize, -halfSize}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},   // 6
-            {{-halfSize, halfSize, -halfSize}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},  // 7
+            {
+                {-halfSize, -halfSize, -halfSize}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // 4
+            {
+                {halfSize, -halfSize, -halfSize}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // 5
+            {
+                {halfSize, halfSize, -halfSize}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // 6
+            {
+                {-halfSize, halfSize, -halfSize}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // 7
 
             // Left face (X-)
-            {{-halfSize, -halfSize, -halfSize}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}}, // 8
-            {{-halfSize, -halfSize, halfSize}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},  // 9
-            {{-halfSize, halfSize, halfSize}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},   // 10
-            {{-halfSize, halfSize, -halfSize}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},  // 11
+            {
+                {-halfSize, -halfSize, -halfSize}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}}, // 8
+            {
+                {-halfSize, -halfSize, halfSize}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}}, // 9
+            {
+                {-halfSize, halfSize, halfSize}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}}, // 10
+            {
+                {-halfSize, halfSize, -halfSize}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}}, // 11
 
             // Right face (X+)
-            {{halfSize, -halfSize, -halfSize}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}}, // 12
-            {{halfSize, -halfSize, halfSize}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},  // 13
-            {{halfSize, halfSize, halfSize}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},   // 14
-            {{halfSize, halfSize, -halfSize}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},  // 15
+            {
+                {halfSize, -halfSize, -halfSize}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}}, // 12
+            {
+                {halfSize, -halfSize, halfSize}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}}, // 13
+            {{halfSize, halfSize, halfSize}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
+            // 14
+            {
+                {halfSize, halfSize, -halfSize}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}}, // 15
 
             // Top face (Y+)
-            {{-halfSize, halfSize, -halfSize}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}, // 16
-            {{halfSize, halfSize, -halfSize}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},  // 17
-            {{halfSize, halfSize, halfSize}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},   // 18
-            {{-halfSize, halfSize, halfSize}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},  // 19
+            {
+                {-halfSize, halfSize, -halfSize}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}, // 16
+            {{halfSize, halfSize, -halfSize}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+            // 17
+            {{halfSize, halfSize, halfSize}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+            // 18
+            {{-halfSize, halfSize, halfSize}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+            // 19
 
             // Bottom face (Y-)
-            {{-halfSize, -halfSize, -halfSize}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}}, // 20
-            {{halfSize, -halfSize, -halfSize}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},  // 21
-            {{halfSize, -halfSize, halfSize}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},   // 22
-            {{-halfSize, -halfSize, halfSize}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}}   // 23
+            {
+                {-halfSize, -halfSize, -halfSize}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}}, // 20
+            {
+                {halfSize, -halfSize, -halfSize}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}}, // 21
+            {
+                {halfSize, -halfSize, halfSize}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}}, // 22
+            {
+                {-halfSize, -halfSize, halfSize}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}} // 23
         };
 
         indices = {
-            // Front face
+
             0, 1, 2, 2, 3, 0,
 
-            // Back face
             4, 7, 6, 6, 5, 4,
 
-            // Left face
             8, 11, 10, 10, 9, 8,
 
-            // Right face
             12, 13, 14, 14, 15, 12,
 
-            // Top face
             16, 17, 18, 18, 19, 16,
 
-            // Bottom face
             20, 23, 22, 22, 21, 20};
     }
 
-    void MeshManager::generateSphereMesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, int slices, int stacks)
+    void MeshManager::generateConeMesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, int segments)
     {
-         float radius = 1.0f;
+        float radius = 1.0f, height = 2.0f;
 
-        for (int i = 0; i <= stacks; ++i) {
+        vertices.clear();
+        indices.clear();
+
+        const float PI = 3.141592653f;
+        Vertex apex;
+        apex.position = glm::vec3(0.f, height * 0.5f, 0.f);
+        apex.normal = glm::vec3(0.0f, 1.0f, 0.0f);
+        apex.texCoords = glm::vec2(0.5f, 1.0f);
+        apex.tangent = glm::vec3(1.0f, 0.0f, 0.0f);
+        apex.bitangent = glm::vec3(0.0f, 0.0f, 1.0f);
+        vertices.push_back(apex);
+
+        Vertex baseCenter;
+        baseCenter.position = glm::vec3(0.0f, -height * 0.5f, 0.0f);
+        baseCenter.normal = glm::vec3(0.0f, -1.0f, 0.0f);
+        baseCenter.texCoords = glm::vec2(0.5f, 0.0f);
+        baseCenter.tangent = glm::vec3(1.0f, 0.0f, 0.0f);
+        baseCenter.bitangent = glm::vec3(0.0f, 0.0f, 1.0f);
+        vertices.push_back(baseCenter);
+
+        for (int i = 0; i <= segments; ++i)
+        {
+            float angle = (float)i / (float)segments * 2.0f * PI;
+            float x = cos(angle) * radius;
+            float z = sin(angle) * radius;
+
+            Vertex sideVertex;
+            sideVertex.position = glm::vec3(x, -height * 0.5f, z);
+
+            glm::vec3 toApex = glm::normalize(apex.position - sideVertex.position);
+            glm::vec3 radial = glm::normalize(glm::vec3(x, 0.0f, z));
+            sideVertex.normal = glm::normalize(glm::cross(glm::cross(toApex, radial), toApex));
+
+            sideVertex.texCoords = glm::vec2((float)i / (float)segments, 0.0f);
+
+            sideVertex.tangent = glm::normalize(glm::vec3(-sin(angle), 0.0f, cos(angle)));
+            sideVertex.bitangent = glm::cross(sideVertex.normal, sideVertex.tangent);
+
+            vertices.push_back(sideVertex);
+
+            Vertex baseVertex;
+            baseVertex.position = glm::vec3(x, -height * 0.5f, z);
+            baseVertex.normal = glm::vec3(0.0f, -1.0f, 0.0f);
+            baseVertex.texCoords = glm::vec2(
+                0.5f + 0.5f * cos(angle),
+                0.5f + 0.5f * sin(angle));
+            baseVertex.tangent = glm::vec3(1.0f, 0.0f, 0.0f);
+            baseVertex.bitangent = glm::vec3(0.0f, 0.0f, 1.0f);
+            vertices.push_back(baseVertex);
+        }
+
+        for (int i = 0; i < segments; ++i)
+        {
+            int current = 2 + i * 2;
+            int next = 2 + (i + 1) * 2;
+
+            indices.push_back(0);
+            indices.push_back(current);
+            indices.push_back(next);
+        }
+
+        for (int i = 0; i < segments; ++i)
+        {
+            int current = 3 + i * 2;
+            int next = 3 + (i + 1) * 2;
+
+            indices.push_back(1);
+            indices.push_back(next);
+            indices.push_back(current);
+        }
+    }
+
+    void MeshManager::generateCylinderMesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, int segments)
+    {
+        float radius = 1.0f, height = 2.0f;
+
+        vertices.clear();
+        indices.clear();
+
+        const float PI = 3.141592653f;
+
+        Vertex bottomCenter;
+        bottomCenter.position = glm::vec3(0.0f, -height * 0.5f, 0.0f);
+        bottomCenter.normal = glm::vec3(0.0f, -1.0f, 0.0f);
+        bottomCenter.texCoords = glm::vec2(0.5f, 0.5f);
+        bottomCenter.tangent = glm::vec3(1.0f, 0.0f, 0.0f);
+        bottomCenter.bitangent = glm::vec3(0.0f, 0.0f, 1.0f);
+        vertices.push_back(bottomCenter);
+
+        Vertex topCenter;
+        topCenter.position = glm::vec3(0.0f, height * 0.5f, 0.0f);
+        topCenter.normal = glm::vec3(0.0f, 1.0f, 0.0f);
+        topCenter.texCoords = glm::vec2(0.5f, 0.5f);
+        topCenter.tangent = glm::vec3(1.0f, 0.0f, 0.0f);
+        topCenter.bitangent = glm::vec3(0.0f, 0.0f, 1.0f);
+        vertices.push_back(topCenter);
+
+        for (int i = 0; i <= segments; ++i)
+        {
+            float angle = (float)i / (float)segments * 2.0f * PI;
+            float x = cos(angle) * radius;
+            float z = sin(angle) * radius;
+
+            Vertex bottomVertex;
+            bottomVertex.position = glm::vec3(x, -height * 0.5f, z);
+            bottomVertex.normal = glm::vec3(0.0f, -1.0f, 0.0f);
+            bottomVertex.texCoords = glm::vec2(
+                0.5f + 0.5f * cos(angle),
+                0.5f + 0.5f * sin(angle));
+            bottomVertex.tangent = glm::vec3(1.0f, 0.0f, 0.0f);
+            bottomVertex.bitangent = glm::vec3(0.0f, 0.0f, 1.0f);
+            vertices.push_back(bottomVertex);
+
+            Vertex topVertex;
+            topVertex.position = glm::vec3(x, height * 0.5f, z);
+            topVertex.normal = glm::vec3(0.0f, 1.0f, 0.0f);
+            topVertex.texCoords = glm::vec2(
+                0.5f + 0.5f * cos(angle),
+                0.5f + 0.5f * sin(angle));
+            topVertex.tangent = glm::vec3(1.0f, 0.0f, 0.0f);
+            topVertex.bitangent = glm::vec3(0.0f, 0.0f, 1.0f);
+            vertices.push_back(topVertex);
+
+            Vertex sideBottomVertex;
+            sideBottomVertex.position = glm::vec3(x, -height * 0.5f, z);
+            sideBottomVertex.normal = glm::normalize(glm::vec3(x, 0.0f, z));
+            sideBottomVertex.texCoords = glm::vec2((float)i / (float)segments, 0.0f);
+            sideBottomVertex.tangent = glm::normalize(glm::vec3(-sin(angle), 0.0f, cos(angle)));
+            sideBottomVertex.bitangent = glm::vec3(0.0f, 1.0f, 0.0f);
+            vertices.push_back(sideBottomVertex);
+
+            Vertex sideTopVertex;
+            sideTopVertex.position = glm::vec3(x, height * 0.5f, z);
+            sideTopVertex.normal = glm::normalize(glm::vec3(x, 0.0f, z));
+            sideTopVertex.texCoords = glm::vec2((float)i / (float)segments, 1.0f);
+            sideTopVertex.tangent = glm::normalize(glm::vec3(-sin(angle), 0.0f, cos(angle)));
+            sideTopVertex.bitangent = glm::vec3(0.0f, 1.0f, 0.0f);
+            vertices.push_back(sideTopVertex);
+        }
+
+        for (int i = 0; i < segments; ++i)
+        {
+            int currentBottom = 2 + i * 4;
+            int nextBottom = 2 + (i + 1) * 4;
+            int currentTop = 3 + i * 4;
+            int nextTop = 3 + (i + 1) * 4;
+
+            indices.push_back(0);
+            indices.push_back(nextBottom);
+            indices.push_back(currentBottom);
+
+            indices.push_back(1);
+            indices.push_back(currentTop);
+            indices.push_back(nextTop);
+        }
+
+        for (int i = 0; i < segments; ++i)
+        {
+            int currentBottomSide = 4 + i * 4;
+            int currentTopSide = 5 + i * 4;
+            int nextBottomSide = 4 + (i + 1) * 4;
+            int nextTopSide = 5 + (i + 1) * 4;
+
+            indices.push_back(currentBottomSide);
+            indices.push_back(currentTopSide);
+            indices.push_back(nextBottomSide);
+
+            indices.push_back(nextBottomSide);
+            indices.push_back(currentTopSide);
+            indices.push_back(nextTopSide);
+        }
+    }
+
+    void MeshManager::generateSphereMesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, int slices,
+                                         int stacks)
+    {
+        float radius = 1.0f;
+
+        for (int i = 0; i <= stacks; ++i)
+        {
             float phi = 3.14f * (float)i / (float)stacks;
             float y = radius * std::cos(phi);
             float ringRadius = radius * std::sin(phi);
 
-            for (int j = 0; j <= slices; ++j) {
+            for (int j = 0; j <= slices; ++j)
+            {
                 float theta = 2.0f * 3.14f * (float)j / (float)slices;
 
                 Vertex vertex;
-                
+
                 vertex.position.x = ringRadius * std::cos(theta);
                 vertex.position.y = y;
                 vertex.position.z = ringRadius * std::sin(theta);
@@ -280,13 +452,10 @@ namespace sx
                 vertex.texCoords.x = (float)j / (float)slices;
                 vertex.texCoords.y = (float)i / (float)stacks;
 
-                // Calculăm tangent și bitangent pentru sferă
-                // Tangent este perpendicular pe meridian (în direcția theta)
                 vertex.tangent.x = -std::sin(theta);
                 vertex.tangent.y = 0.0f;
                 vertex.tangent.z = std::cos(theta);
-                
-                // Bitangent este perpendicular pe paralel (în direcția phi)
+
                 vertex.bitangent = glm::cross(vertex.normal, vertex.tangent);
                 vertex.bitangent = glm::normalize(vertex.bitangent);
 
@@ -312,17 +481,20 @@ namespace sx
         }
     }
 
-    void MeshManager::generateTorusMesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, int slices, int stacks)
+    void MeshManager::generateTorusMesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, int slices,
+                                        int stacks)
     {
         float sectorStep = 2.0f * 3.14f / (float)stacks;
         float sideStep = 2.0f * 3.14f / (float)slices;
         float minorRadius = 0.2f;
         float majorRadius = 0.5f;
 
-        for (int i = 0; i <= slices; ++i) {
+        for (int i = 0; i <= slices; ++i)
+        {
             float sideAngle = (float)i * sideStep;
 
-            for (int j = 0; j <= stacks; ++j) {
+            for (int j = 0; j <= stacks; ++j)
+            {
                 float sectorAngle = (float)j * sectorStep;
 
                 Vertex vertex;
@@ -341,13 +513,11 @@ namespace sx
                 vertex.texCoords.x = (float)j / (float)stacks;
                 vertex.texCoords.y = (float)i / (float)slices;
 
-                
                 vertex.tangent.x = -(majorRadius + tubeX) * std::sin(sectorAngle);
                 vertex.tangent.y = (majorRadius + tubeX) * std::cos(sectorAngle);
                 vertex.tangent.z = 0.0f;
                 vertex.tangent = glm::normalize(vertex.tangent);
-                
-                // Bitangent calculat ca cross product
+
                 vertex.bitangent = glm::cross(vertex.normal, vertex.tangent);
                 vertex.bitangent = glm::normalize(vertex.bitangent);
 
@@ -355,7 +525,6 @@ namespace sx
             }
         }
 
-        // Generarea indicilor rămâne la fel
         uint32_t k1, k2;
         for (int i = 0; i < slices; ++i)
         {
@@ -364,12 +533,10 @@ namespace sx
 
             for (int j = 0; j < stacks; ++j, ++k1, ++k2)
             {
-                // Primul triunghi
                 indices.push_back(k1);
                 indices.push_back(k2);
                 indices.push_back(k1 + 1);
 
-                // Al doilea triunghi
                 indices.push_back(k1 + 1);
                 indices.push_back(k2);
                 indices.push_back(k2 + 1);

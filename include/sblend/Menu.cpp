@@ -54,7 +54,6 @@ namespace sx
 
         if (ImGui::Button("Load"))
         {
-            // renderLoadMenu = !renderLoadMenu;
             loadRequest.type = LoadRequestType::LOAD_SCENE;
             fileDialog.Open();
         }
@@ -108,6 +107,18 @@ namespace sx
                 ++meshTypeCounter[(int) selectedMesh];
             }
 
+            if (ImGui::Button("Cone"))
+            {
+                selectedMesh = MeshType::CONE;
+                newCone = true;
+            }
+
+            if (ImGui::Button("Cylinder"))
+            {
+                selectedMesh = MeshType::CYLINDER;
+                newCylinder = true;
+            }
+
             if (ImGui::Button("Sphere"))
             {
                 selectedMesh = MeshType::SPHERE;
@@ -151,6 +162,28 @@ namespace sx
 
                 ImGui::InputInt("Slices", &slices);
                 ImGui::InputInt("Stacks", &stacks);
+
+                generate = ImGui::Button("Ok");
+
+                ImGui::End();
+            }
+
+            if (newCone)
+            {
+                ImGui::Begin("New Cone");
+
+                ImGui::InputInt("Segments", &segments);
+
+                generate = ImGui::Button("Ok");
+
+                ImGui::End();
+            }
+
+             if (newCylinder)
+            {
+                ImGui::Begin("New Cylinder");
+
+                ImGui::InputInt("Segments", &segments);
 
                 generate = ImGui::Button("Ok");
 

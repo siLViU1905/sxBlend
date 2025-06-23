@@ -28,6 +28,10 @@ namespace sx
 
         static void generateCubeMesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
 
+        static void generateConeMesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, int segments = 32);
+
+        static void generateCylinderMesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, int segments = 32);
+
         static void generateSphereMesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, int slices = 32, int stacks = 16);
 
         static void generateTorusMesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, int slices = 32, int stacks = 16);
