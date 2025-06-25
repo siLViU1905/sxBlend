@@ -222,6 +222,20 @@ namespace sx
                 shaders->modelLightningShader.setInt("lightCount", lightCount);
                 break;
 
+            case LightType::DIRECTIONAL:
+                lights.lights.emplace_back(LightType::DIRECTIONAL);
+                mainMenu.selectedLight = LightType::NaN;
+                shaders->lightningShader.setInt("lightCount", ++lightCount);
+                shaders->modelLightningShader.setInt("lightCount", lightCount);
+                break;
+
+            case LightType::SPOT:
+                lights.lights.emplace_back(LightType::SPOT);
+                mainMenu.selectedLight = LightType::NaN;
+                shaders->lightningShader.setInt("lightCount", ++lightCount);
+                shaders->modelLightningShader.setInt("lightCount", lightCount);
+                break;
+
             case LightType::PBR:
                 lights.lights.emplace_back(LightType::PBR);
                 mainMenu.selectedLight = LightType::NaN;
@@ -300,9 +314,6 @@ namespace sx
                 glDeleteVertexArrays(1, &delMesh.vao);
                 glDeleteTextures(1, &delMesh.texture);
                 meshes->meshes.erase(meshes->meshes.begin() + mainMenu.selectedMeshIndex);
-                /* meshes->initialMeshesPositionsAndVelocities.erase(
-                     meshes->initialMeshesPositionsAndVelocities.begin() +
-                     mainMenu.selectedMeshIndex);*/
                 mainMenu.existentMeshes.erase(mainMenu.existentMeshes.begin() +
                                               mainMenu.selectedMeshIndex);
                 mainMenu.selectedMeshIndicator.erase(
@@ -369,6 +380,7 @@ namespace sx
         {
             auto &light = lights.lights[mainMenu.selectedLightIndex];
             mainMenu.lightMenu.position = glm::value_ptr(light.position);
+            mainMenu.lightMenu.direction = glm::value_ptr(light.direction);
             mainMenu.lightMenu.color = glm::value_ptr(light.color);
             mainMenu.lightMenu.diffuse = glm::value_ptr(light.diffuse);
             mainMenu.lightMenu.specular = glm::value_ptr(light.specular);
@@ -376,12 +388,15 @@ namespace sx
             mainMenu.lightMenu.constant = &light.constant;
             mainMenu.lightMenu.linear = &light.linear;
             mainMenu.lightMenu.quadratic = &light.quadratic;
+            mainMenu.lightMenu.cutOff = &light.cutOff;
+            mainMenu.lightMenu.outerCutOff = &light.outerCutOff;
             renderLightMenu = true;
 
             if (mainMenu.deleteLight)
             {
-                if ((lights.lights.begin() + mainMenu.selectedLightIndex)->type ==
-                    LightType::POINT)
+                if ((lights.lights.begin() + mainMenu.selectedLightIndex)->type == LightType::POINT ||
+                    (lights.lights.begin() + mainMenu.selectedLightIndex)->type == LightType::DIRECTIONAL ||
+                    (lights.lights.begin() + mainMenu.selectedLightIndex)->type == LightType::SPOT)
                     shaders->lightningShader.setInt("lightCount", --lightCount);
                 else
                     shaders->pbrLightningShader.setInt("lightCount", --pbrLightCount);
@@ -591,7 +606,7 @@ namespace sx
                     mainMenu.existentModels.emplace_back("Model " + std::to_string(mainMenu.modelCounter));
                     mainMenu.modelCounter++;
                 }
-                inputFile >> mainMenu.useLightShader;
+                inputFile >> mainMenu.usePointLightShader;
                 inputFile >> mainMenu.usePbrLightShader;
                 inputFile >> mainMenu.castShadows;
                 inputFile.close();
@@ -728,7 +743,7 @@ namespace sx
             gridLines->render(shaders->basicShader);
         }
 
-        if (mainMenu.useLightShader)
+        if (mainMenu.usePointLightShader || mainMenu.useDirectionalLightShader || mainMenu.useSpotLightShader )
         {
             reflection->bind();
 
@@ -739,10 +754,10 @@ namespace sx
             shaders->modelLightningShader.setVec3("camera.position",
                                                   camera.getPosition());
 
+            float surfaceHeight = 0.f;
             for (auto &rm : meshes->meshes)
                 if (rm.isReflective)
                 {
-                    float surfaceHeight = rm.position.y;
                     glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, surfaceHeight);
                     shaders->lightningShader.setMat4("camera.view", reflectionView);
                     for (auto &m : meshes->meshes)
@@ -1024,7 +1039,7 @@ namespace sx
         grid->render(shaders->basicShader);
         gridLines->render(shaders->basicShader);
 
-        if (mainMenu.useLightShader)
+        if (mainMenu.usePointLightShader)
         {
             reflection->bind();
 
@@ -1073,7 +1088,7 @@ namespace sx
             for (auto &m : models)
                 m.render(shaders->modelLightningShader);
 
-             if (!useSkybox)
+            if (!useSkybox)
             {
                 for (auto &m : meshes->meshes)
                     if (m.isReflective)

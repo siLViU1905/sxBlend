@@ -56,7 +56,7 @@ namespace sx
 
         ImVec2 menuPos, menuSize;
 
-         bool rotateObjectWithMouse = true, scaleObjectWithMouse = false, translateObjectWithMouse = false;
+        bool rotateObjectWithMouse = true, scaleObjectWithMouse = false, translateObjectWithMouse = false;
 
     public:
         ObjectMenu();
@@ -75,6 +75,7 @@ namespace sx
         ImGuiWindowFlags windowFlags;
 
         float *position;
+        float *direction;
         float *color;
         float *diffuse;
         float *specular;
@@ -82,6 +83,8 @@ namespace sx
         float *constant;
         float *linear;
         float *quadratic;
+        float* cutOff;
+        float* outerCutOff;
 
     protected:
         void render() override;
@@ -93,7 +96,7 @@ namespace sx
         friend class MainMenu;
     };
 
-    class ErrorMenu: protected Menu
+    class ErrorMenu : protected Menu
     {
         std::string message;
         std::string title;
@@ -116,7 +119,11 @@ namespace sx
         MeshType selectedMesh = MeshType::NaN;
         LightType selectedLight = LightType::NaN;
 
-        bool useLightShader = false;
+        bool usePointLightShader = false;
+
+        bool useDirectionalLightShader = false;
+
+        bool useSpotLightShader = false;
 
         bool usePbrLightShader = false;
 
@@ -189,7 +196,7 @@ namespace sx
         bool resetSimulation = false;
 
         bool savePositionAndVelocity = false;
-        
+
         LoadRequest loadRequest;
 
         ImGui::FileBrowser fileDialog;

@@ -5,6 +5,8 @@ enum class LightType
 {
     NaN,
     POINT,
+    DIRECTIONAL,
+    SPOT,
     PBR
 };
 
@@ -30,18 +32,19 @@ namespace sx
         static std::unordered_map<std::string, LightType> LightStringMap;
 
         glm::vec3 position;
+        glm::vec3 direction;
         glm::vec3 diffuse;
         glm::vec3 specular;
         glm::vec3 ambient;
         glm::vec3 color;
-        glm::vec3 direction;
 
         LightType type;
 
         float constant;
         float linear;
         float quadratic;
-        float cutoff;
+        float cutOff;
+        float outerCutOff;
 
         glm::mat4 view, projection;
 

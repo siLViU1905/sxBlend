@@ -12,6 +12,7 @@ uniform sampler2D shadowMap;
 struct Light
 {
     vec3 position;
+    vec3 direction;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -19,16 +20,23 @@ struct Light
     float constant;
     float linear;
     float quadratic;
+    float cutOff;
+    float outerCutOff;
+    int type;
 };
 
 uniform Light light[6];
 uniform int lightCount;
 uniform vec3 aColor;
+uniform int hasTex;
+uniform int useShadows;
+uniform sampler2D _texture;
 
-float calculateShadow(vec4 fpls)
+out vec4 FragColor;
+
+float calculateShadow(vec4 fpls, int lightIndex)
 {
     vec3 projCoords = fpls.xyz / fpls.w;
-
     projCoords = projCoords * 0.5 + 0.5;
 
     if(projCoords.x < 0.0 || projCoords.x > 1.0 ||
@@ -38,11 +46,19 @@ float calculateShadow(vec4 fpls)
 
     float currentDepth = projCoords.z;
 
-    vec3 lightDir = normalize(light[0].position - FragPos);
+    // Calculează bias-ul corect în funcție de tipul luminii
+    vec3 lightDir;
+    if(light[lightIndex].type == 2) // directional
+        lightDir = normalize(-light[lightIndex].direction);
+    else // point/spot
+        lightDir = normalize(light[lightIndex].position - FragPos);
+
     float bias = max(0.05 * (1.0 - dot(Normal, lightDir)), 0.005);
 
     float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+
+    // PCF (Percentage Closer Filtering)
     for(int x = -1; x <= 1; ++x)
     {
         for(int y = -1; y <= 1; ++y)
@@ -56,30 +72,24 @@ float calculateShadow(vec4 fpls)
     return shadow;
 }
 
-out vec4 FragColor;
-
-vec3 processLight(int index, vec3 materialColor, vec3 normal)
+vec3 processPointLight(int index, vec3 materialColor, vec3 normal)
 {
     float distance = length(light[index].position - FragPos);
     float attenuation = 1.0 / (light[index].constant +
         light[index].linear * distance +
         light[index].quadratic * (distance * distance));
 
-   
     vec3 ambient = light[index].ambient * materialColor;
 
-    
     vec3 lightDir = normalize(light[index].position - FragPos);
     float diff = max(dot(normal, lightDir), 0.0);
     vec3 diffuse = light[index].diffuse * light[index].color * diff * materialColor;
 
-    
     vec3 viewDir = normalize(ViewPos - FragPos);
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
     vec3 specular = light[index].specular * spec * light[index].color;
 
-    
     ambient *= attenuation;
     diffuse *= attenuation;
     specular *= attenuation;
@@ -87,31 +97,81 @@ vec3 processLight(int index, vec3 materialColor, vec3 normal)
     return ambient + diffuse + specular;
 }
 
-uniform int hasTex;
+vec3 processDirectionalLight(int index, vec3 materialColor, vec3 normal)
+{
+    vec3 ambient = light[index].ambient * materialColor;
 
-uniform int useShadows;
+    vec3 lightDir = normalize(-light[index].direction);
+    float diff = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse = light[index].diffuse * light[index].color * diff * materialColor;
 
-uniform sampler2D _texture;
+    vec3 viewDir = normalize(ViewPos - FragPos);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
+    vec3 specular = light[index].specular * spec * light[index].color;
+
+    return ambient + diffuse + specular;
+}
+
+vec3 processSpotLight(int index, vec3 materialColor, vec3 normal)
+{
+    vec3 lightDir = normalize(light[index].position - FragPos);
+    float theta = dot(lightDir, normalize(-light[index].direction));
+
+    float distance = length(light[index].position - FragPos);
+    float attenuation = 1.0 / (light[index].constant +
+        light[index].linear * distance +
+        light[index].quadratic * (distance * distance));
+
+    float epsilon = light[index].cutOff - light[index].outerCutOff;
+    float intensity = clamp((theta - light[index].outerCutOff) / epsilon, 0.0, 1.0);
+
+    vec3 ambient = light[index].ambient * materialColor;
+
+    float diff = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse = light[index].diffuse * light[index].color * diff * materialColor;
+
+    vec3 viewDir = normalize(ViewPos - FragPos);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
+    vec3 specular = light[index].specular * spec * light[index].color;
+
+    ambient *= attenuation;
+    diffuse *= attenuation * intensity;
+    specular *= attenuation * intensity;
+
+    return ambient + diffuse + specular;
+
+}
 
 void main()
 {
     vec3 result = vec3(0.0);
-
-    float shadow = 0.0;
-
-    if(useShadows == 1)
-     shadow = calculateShadow(FragPosLightSpace);
-
     vec3 normal = normalize(Normal);
 
-    if(hasTex == 0)
-        for(int i = 0; i < lightCount; i++) 
-        result += processLight(i, aColor, normal);
-    else
-        for(int i = 0; i < lightCount; i++) 
-        result += processLight(i, texture(_texture, TexCoords).rgb, normal);
+    vec3 materialColor = (hasTex == 1) ? texture(_texture, TexCoords).rgb : aColor;
 
-    result *= (1.0 - shadow);
-  
+    for(int i = 0; i < lightCount; i++)
+    {
+        vec3 lightContribution = vec3(0.0);
+
+        if(light[i].type == 1) 
+            lightContribution = processPointLight(i, materialColor, normal);
+        else if(light[i].type == 2) 
+            lightContribution = processDirectionalLight(i, materialColor, normal);
+        else if(light[i].type == 3) 
+            lightContribution = processSpotLight(i, materialColor, normal);
+
+        if(useShadows == 1 && i == 0)
+        {
+            float shadow = calculateShadow(FragPosLightSpace, i);
+
+            vec3 ambient = light[i].ambient * materialColor;
+            lightContribution = ambient + (lightContribution - ambient) * (1.0 - shadow);
+        }
+
+        result += lightContribution;
+    }
+
     FragColor = vec4(result, 1.0);
 }
