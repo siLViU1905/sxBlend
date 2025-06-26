@@ -10,6 +10,7 @@ out vec4 FragColor;
 
 struct Light {
     vec3 position;
+    vec3 direction;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -17,6 +18,9 @@ struct Light {
     float constant;
     float linear;
     float quadratic;
+    float cutOff;
+    float outerCutOff;
+    int type;
 };
 uniform Light light[6];
 uniform int lightCount;
@@ -94,7 +98,11 @@ float calculateShadow(vec4 fragPosLightSpace) {
     if (projCoords.z > 1.0) return 0.0;
 
     float currentDepth = projCoords.z;
-    vec3 lightDir = normalize(light[0].position - FragPos);
+    vec3 lightDir;
+    if (light[0].type == 2)
+    lightDir = normalize(-light[0].direction);
+    else
+    lightDir = normalize(light[0].position - FragPos);
     float bias = max(0.05 * (1.0 - dot(Normal, lightDir)), 0.005);
 
     float shadow = 0.0;
@@ -107,6 +115,68 @@ float calculateShadow(vec4 fragPosLightSpace) {
     }
     shadow /= 9.0;
     return shadow;
+}
+
+vec3 processPointLight(int index, vec3 materialDiffuse, vec3 materialSpecular, float shininess, float ao, vec3 normal, vec3 viewDir)
+{
+    float distance = length(light[index].position - FragPos);
+    float attenuation = 1.0 / (light[index].constant + light[index].linear * distance + light[index].quadratic * (distance * distance));
+
+    vec3 ambient = light[index].ambient * materialDiffuse * ao;
+
+    vec3 lightDir = normalize(light[index].position - FragPos);
+    float diff = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse = light[index].diffuse * light[index].color * diff * materialDiffuse;
+
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+    vec3 specular = light[index].specular * spec * materialSpecular * light[index].color;
+
+    return (ambient + diffuse + specular) * attenuation;
+}
+
+vec3 processDirectionalLight(int index, vec3 materialDiffuse, vec3 materialSpecular, float shininess, float ao, vec3 normal, vec3 viewDir)
+{
+    vec3 ambient = light[index].ambient * materialDiffuse * ao;
+
+    vec3 lightDir = normalize(-light[index].direction);
+    float diff = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse = light[index].diffuse * light[index].color * diff * materialDiffuse;
+
+
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+    vec3 specular = light[index].specular * spec * materialSpecular * light[index].color;
+
+    return ambient + diffuse + specular;
+}
+
+vec3 processSpotLight(int index, vec3 materialDiffuse, vec3 materialSpecular, float shininess, float ao, vec3 normal, vec3 viewDir)
+{
+    vec3 lightDir = normalize(light[index].position - FragPos);
+    float theta = dot(lightDir, normalize(-light[index].direction));
+    float epsilon = light[index].cutOff - light[index].outerCutOff;
+    float intensity = clamp((theta - light[index].outerCutOff) / epsilon, 0.0, 1.0);
+
+    if (intensity > 0.0)
+    {
+        float distance = length(light[index].position - FragPos);
+        float attenuation = 1.0 / (light[index].constant + light[index].linear * distance + light[index].quadratic * (distance * distance));
+
+        vec3 ambient = light[index].ambient * materialDiffuse * ao * attenuation;
+
+        float diff = max(dot(normal, lightDir), 0.0);
+        vec3 diffuse = light[index].diffuse * light[index].color * diff * materialDiffuse;
+
+
+        vec3 reflectDir = reflect(-lightDir, normal);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+        vec3 specular = light[index].specular * spec * materialSpecular * light[index].color;
+
+        return ambient + (diffuse + specular) * intensity * attenuation;
+    }
+
+    return vec3(0.0);
 }
 
 void main()
@@ -148,7 +218,7 @@ void main()
     shininess = 32.0;
 
 
-    float ao = 1.0;
+    float ao = 0.5;
     if (mat.hasAmbientOcclusion == 1)
     ao = texture(ambientOcclusionTexArray, vec3(pTexCoords, mat.ambientOcclusionTexLayer)).r;
 
@@ -175,21 +245,34 @@ void main()
 
     float shadow = (useShadows == 1) ? calculateShadow(FragPosLightSpace) : 0.0;
 
-    for (int i = 0; i < lightCount && i < 6; i++)
+    for (int i = 0; i < lightCount; i++)
     {
-        float distance = length(light[i].position - FragPos);
-        float attenuation = calculateAttenuation(distance, light[i].constant, light[i].linear, light[i].quadratic);
+        vec3 lightContribution = vec3(0.0);
 
-        vec3 lightDir = normalize(light[i].position - FragPos);
-        vec3 ambient = light[i].ambient * materialDiffuse * ao;
-        vec3 diffuse = calculateDiffuse(normal, lightDir, light[i].diffuse, materialDiffuse);
-        vec3 specular = calculateSpecular(normal, lightDir, viewDir, light[i].specular, materialSpecular, shininess);
+        if (light[i].type == 1)
+        lightContribution = processPointLight(i, materialDiffuse, materialSpecular, shininess, ao, normal, viewDir);
+        else if (light[i].type == 2)
+        lightContribution = processDirectionalLight(i, materialDiffuse, materialSpecular, shininess, ao, normal, viewDir);
+        else if (light[i].type == 3)
+        lightContribution = processSpotLight(i, materialDiffuse, materialSpecular, shininess, ao, normal, viewDir);
+
 
         if (i == 0)
-        totalLighting += (ambient + (1.0 - shadow) * (diffuse + specular)) * light[i].color * attenuation;
-        else
-        totalLighting += (ambient + diffuse + specular) * light[i].color * attenuation;
+        {
 
+            vec3 ambientPart = light[i].ambient * materialDiffuse * ao;
+            if (light[i].type == 1 || light[i].type == 3)
+            {
+                float distance = length(light[i].position - FragPos);
+                float attenuation = 1.0 / (light[i].constant + light[i].linear * distance + light[i].quadratic * (distance * distance));
+                ambientPart *= attenuation;
+            }
+
+            vec3 shadedPart = lightContribution - ambientPart;
+            lightContribution = ambientPart + shadedPart * (1.0 - shadow);
+        }
+
+        totalLighting += lightContribution;
     }
 
     vec3 finalColor = totalLighting + emissive;

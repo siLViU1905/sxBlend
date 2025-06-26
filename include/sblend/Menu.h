@@ -119,11 +119,7 @@ namespace sx
         MeshType selectedMesh = MeshType::NaN;
         LightType selectedLight = LightType::NaN;
 
-        bool usePointLightShader = false;
-
-        bool useDirectionalLightShader = false;
-
-        bool useSpotLightShader = false;
+        bool useLightShader = false;
 
         bool usePbrLightShader = false;
 

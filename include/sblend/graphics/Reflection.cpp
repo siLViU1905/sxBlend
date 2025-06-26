@@ -48,24 +48,21 @@ namespace sx
     {
         float distance = 2.f * (camera.getPosition().y - surfaceHeight);
         glm::vec3 reflectionCamPos = camera.getPosition();
-        reflectionCamPos.y -= distance;
+        reflectionCamPos.y = 2 * surfaceHeight - reflectionCamPos.y;
 
-        glm::vec3 reflectionCamFront = camera.getFront();
-        reflectionCamFront.y = -reflectionCamFront.y;
-
-        glm::vec3 reflectionCamUp = camera.getUp();
-        reflectionCamUp.y = -reflectionCamUp.y;
 
         return glm::lookAt(reflectionCamPos,
-                           reflectionCamPos + reflectionCamFront,
-                           reflectionCamUp);
+                           reflectionCamPos + camera.getFront(),
+                           camera.getUp());
     }
 
     void Reflection::renderSurface(Mesh &surfaceMesh, const Camera &mainCamera, const glm::mat4 &mainProjection, int skyboxTex)
     {
+        auto reflectionView = calculateReflectionViewMatrix(mainCamera, surfaceMesh.position.y);
+
         reflectionShader->use();
 
-        reflectionShader->setMat4("camera.view", mainCamera.getView());
+        reflectionShader->setMat4("camera.view",reflectionView);
         reflectionShader->setMat4("projection", mainProjection);
 
         reflectionShader->setInt("reflectionTexture", 0);

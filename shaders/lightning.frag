@@ -34,7 +34,7 @@ uniform sampler2D _texture;
 
 out vec4 FragColor;
 
-float calculateShadow(vec4 fpls, int lightIndex)
+float calculateShadow(vec4 fpls)
 {
     vec3 projCoords = fpls.xyz / fpls.w;
     projCoords = projCoords * 0.5 + 0.5;
@@ -46,19 +46,17 @@ float calculateShadow(vec4 fpls, int lightIndex)
 
     float currentDepth = projCoords.z;
 
-    // Calculează bias-ul corect în funcție de tipul luminii
     vec3 lightDir;
-    if(light[lightIndex].type == 2) // directional
-        lightDir = normalize(-light[lightIndex].direction);
-    else // point/spot
-        lightDir = normalize(light[lightIndex].position - FragPos);
+    if(light[0].type == 2)
+        lightDir = normalize(-light[0].direction);
+    else
+        lightDir = normalize(light[0].position - FragPos);
 
     float bias = max(0.05 * (1.0 - dot(Normal, lightDir)), 0.005);
 
     float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
 
-    // PCF (Percentage Closer Filtering)
     for(int x = -1; x <= 1; ++x)
     {
         for(int y = -1; y <= 1; ++y)
@@ -151,24 +149,22 @@ void main()
 
     vec3 materialColor = (hasTex == 1) ? texture(_texture, TexCoords).rgb : aColor;
 
+    float shadow = (useShadows == 1) ? calculateShadow(FragPosLightSpace) : 0.0;
+
     for(int i = 0; i < lightCount; i++)
     {
         vec3 lightContribution = vec3(0.0);
 
-        if(light[i].type == 1) 
+        if(light[i].type == 1)
             lightContribution = processPointLight(i, materialColor, normal);
-        else if(light[i].type == 2) 
+        else if(light[i].type == 2)
             lightContribution = processDirectionalLight(i, materialColor, normal);
-        else if(light[i].type == 3) 
+        else if(light[i].type == 3)
             lightContribution = processSpotLight(i, materialColor, normal);
 
-        if(useShadows == 1 && i == 0)
-        {
-            float shadow = calculateShadow(FragPosLightSpace, i);
-
-            vec3 ambient = light[i].ambient * materialColor;
-            lightContribution = ambient + (lightContribution - ambient) * (1.0 - shadow);
-        }
+        if(i == 0)    
+            lightContribution *= (1.0 - shadow);
+    
 
         result += lightContribution;
     }

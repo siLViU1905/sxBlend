@@ -7,17 +7,20 @@ namespace sx
         {LightType::POINT, "POINT"},
         {LightType::DIRECTIONAL, "DIRECTIONAL"},
         {LightType::SPOT, "SPOT"},
-        {LightType::PBR, "PBR"}};
+        {LightType::PBR, "PBR"}
+    };
 
     std::unordered_map<std::string, LightType> Light::LightStringMap = {
         {"POINT", LightType::POINT},
         {"DIRECTIONAL", LightType::DIRECTIONAL},
         {"SPOT", LightType::SPOT},
-        {"PBR", LightType::PBR}};
+        {"PBR", LightType::PBR}
+    };
 
     Light::Light(LightType type) : type(type)
     {
         direction = position = glm::vec3(0.f);
+        direction.z = -1.f;
         ambient = specular = color = diffuse = glm::vec3(1.f);
         constant = 1.f;
         linear = 0.2f;
@@ -30,61 +33,63 @@ namespace sx
 
     void Light::apply_to_shader(Shader &shader, int index)
     {
-
         switch (type)
         {
-        case LightType::POINT:
-            shader.setVec3(("light[" + std::to_string(index) + "].position").c_str(), position);
-            shader.setVec3(("light[" + std::to_string(index) + "].diffuse").c_str(), diffuse);
-            shader.setVec3(("light[" + std::to_string(index) + "].specular").c_str(), specular);
-            shader.setVec3(("light[" + std::to_string(index) + "].ambient").c_str(), ambient);
-            shader.setVec3(("light[" + std::to_string(index) + "].color").c_str(), color);
-            shader.setFloat(("light[" + std::to_string(index) + "].linear").c_str(), linear);
-            shader.setFloat(("light[" + std::to_string(index) + "].constant").c_str(), constant);
-            shader.setFloat(("light[" + std::to_string(index) + "].quadratic").c_str(), quadratic);
-            shader.setInt(("light[" + std::to_string(index) + "].type").c_str(), (int)type);
-            view = glm::lookAt(position, glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
-            shader.setMat4(("lightView[" + std::to_string(index) + "]").c_str(), view);
-            shader.setMat4(("lightProjection[" + std::to_string(index) + "]").c_str(), projection);
-            break;
+            case LightType::POINT:
+                shader.setVec3(("light[" + std::to_string(index) + "].position").c_str(), position);
+                shader.setVec3(("light[" + std::to_string(index) + "].diffuse").c_str(), diffuse);
+                shader.setVec3(("light[" + std::to_string(index) + "].specular").c_str(), specular);
+                shader.setVec3(("light[" + std::to_string(index) + "].ambient").c_str(), ambient);
+                shader.setVec3(("light[" + std::to_string(index) + "].color").c_str(), color);
+                shader.setFloat(("light[" + std::to_string(index) + "].linear").c_str(), linear);
+                shader.setFloat(("light[" + std::to_string(index) + "].constant").c_str(), constant);
+                shader.setFloat(("light[" + std::to_string(index) + "].quadratic").c_str(), quadratic);
+                shader.setInt(("light[" + std::to_string(index) + "].type").c_str(), (int) type);
+                view = glm::lookAt(position, glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
+                shader.setMat4(("lightView[" + std::to_string(index) + "]").c_str(), view);
+                shader.setMat4(("lightProjection[" + std::to_string(index) + "]").c_str(), projection);
+                break;
 
-        case LightType::DIRECTIONAL:
-            shader.setVec3(("light[" + std::to_string(index) + "].position").c_str(), position);
-            shader.setVec3(("light[" + std::to_string(index) + "].direction").c_str(), direction);
-            shader.setVec3(("light[" + std::to_string(index) + "].diffuse").c_str(), diffuse);
-            shader.setVec3(("light[" + std::to_string(index) + "].specular").c_str(), specular);
-            shader.setVec3(("light[" + std::to_string(index) + "].ambient").c_str(), ambient);
-            shader.setVec3(("light[" + std::to_string(index) + "].color").c_str(), color);
-            shader.setInt(("light[" + std::to_string(index) + "].type").c_str(), (int)type);
-            view = glm::lookAt(position, glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
-            shader.setMat4(("lightView[" + std::to_string(index) + "]").c_str(), view);
-            shader.setMat4(("lightProjection[" + std::to_string(index) + "]").c_str(), projection);
-            break;
+            case LightType::DIRECTIONAL:
+                shader.setVec3(("light[" + std::to_string(index) + "].position").c_str(), position);
+                shader.setVec3(("light[" + std::to_string(index) + "].direction").c_str(), direction);
+                shader.setVec3(("light[" + std::to_string(index) + "].diffuse").c_str(), diffuse);
+                shader.setVec3(("light[" + std::to_string(index) + "].specular").c_str(), specular);
+                shader.setVec3(("light[" + std::to_string(index) + "].ambient").c_str(), ambient);
+                shader.setVec3(("light[" + std::to_string(index) + "].color").c_str(), color);
+                shader.setInt(("light[" + std::to_string(index) + "].type").c_str(), (int) type);
+                view = glm::lookAt(position, glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
+                shader.setMat4(("lightView[" + std::to_string(index) + "]").c_str(), view);
+                shader.setMat4(("lightProjection[" + std::to_string(index) + "]").c_str(), projection);
+                break;
 
-        case LightType::SPOT:
-            shader.setVec3(("light[" + std::to_string(index) + "].position").c_str(), position);
-            shader.setVec3(("light[" + std::to_string(index) + "].diffuse").c_str(), diffuse);
-            shader.setVec3(("light[" + std::to_string(index) + "].specular").c_str(), specular);
-            shader.setVec3(("light[" + std::to_string(index) + "].ambient").c_str(), ambient);
-            shader.setVec3(("light[" + std::to_string(index) + "].color").c_str(), color);
-            shader.setFloat(("light[" + std::to_string(index) + "].linear").c_str(), linear);
-            shader.setFloat(("light[" + std::to_string(index) + "].constant").c_str(), constant);
-            shader.setFloat(("light[" + std::to_string(index) + "].quadratic").c_str(), quadratic);
-            shader.setFloat(("light[" + std::to_string(index) + "].cutOff").c_str(), glm::cos(glm::radians(cutOff)));
-            shader.setFloat(("light[" + std::to_string(index) + "].outerCutOff").c_str(), glm::cos(glm::radians(outerCutOff)));
-            shader.setInt(("light[" + std::to_string(index) + "].type").c_str(), (int)type);
-            view = glm::lookAt(position, glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
-            shader.setMat4(("lightView[" + std::to_string(index) + "]").c_str(), view);
-            shader.setMat4(("lightProjection[" + std::to_string(index) + "]").c_str(), projection);
-            break;
+            case LightType::SPOT:
+                shader.setVec3(("light[" + std::to_string(index) + "].position").c_str(), position);
+                shader.setVec3(("light[" + std::to_string(index) + "].direction").c_str(), direction);
+                shader.setVec3(("light[" + std::to_string(index) + "].diffuse").c_str(), diffuse);
+                shader.setVec3(("light[" + std::to_string(index) + "].specular").c_str(), specular);
+                shader.setVec3(("light[" + std::to_string(index) + "].ambient").c_str(), ambient);
+                shader.setVec3(("light[" + std::to_string(index) + "].color").c_str(), color);
+                shader.setFloat(("light[" + std::to_string(index) + "].linear").c_str(), linear);
+                shader.setFloat(("light[" + std::to_string(index) + "].constant").c_str(), constant);
+                shader.setFloat(("light[" + std::to_string(index) + "].quadratic").c_str(), quadratic);
+                shader.setFloat(("light[" + std::to_string(index) + "].cutOff").c_str(),
+                                glm::cos(glm::radians(cutOff)));
+                shader.setFloat(("light[" + std::to_string(index) + "].outerCutOff").c_str(),
+                                glm::cos(glm::radians(outerCutOff)));
+                shader.setInt(("light[" + std::to_string(index) + "].type").c_str(), (int) type);
+                view = glm::lookAt(position, glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
+                shader.setMat4(("lightView[" + std::to_string(index) + "]").c_str(), view);
+                shader.setMat4(("lightProjection[" + std::to_string(index) + "]").c_str(), projection);
+                break;
 
-        case LightType::PBR:
-            shader.setVec3(("light[" + std::to_string(index) + "].position").c_str(), position);
-            shader.setVec3(("light[" + std::to_string(index) + "].color").c_str(), color);
-            view = glm::lookAt(position, glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
-            shader.setMat4(("lightView[" + std::to_string(index) + "]").c_str(), view);
-            shader.setMat4(("lightProjection[" + std::to_string(index) + "]").c_str(), projection);
-            break;
+            case LightType::PBR:
+                shader.setVec3(("light[" + std::to_string(index) + "].position").c_str(), position);
+                shader.setVec3(("light[" + std::to_string(index) + "].color").c_str(), color);
+                view = glm::lookAt(position, glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
+                shader.setMat4(("lightView[" + std::to_string(index) + "]").c_str(), view);
+                shader.setMat4(("lightProjection[" + std::to_string(index) + "]").c_str(), projection);
+                break;
         }
     }
 
@@ -102,6 +107,7 @@ namespace sx
         stream << linear << '\n';
         stream << constant << '\n';
         stream << quadratic << '\n';
+        stream << cutOff << '\n';
+        stream << outerCutOff << '\n';
     }
-
 }

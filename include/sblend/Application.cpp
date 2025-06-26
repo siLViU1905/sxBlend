@@ -606,7 +606,7 @@ namespace sx
                     mainMenu.existentModels.emplace_back("Model " + std::to_string(mainMenu.modelCounter));
                     mainMenu.modelCounter++;
                 }
-                inputFile >> mainMenu.usePointLightShader;
+                inputFile >> mainMenu.useLightShader;
                 inputFile >> mainMenu.usePbrLightShader;
                 inputFile >> mainMenu.castShadows;
                 inputFile.close();
@@ -743,7 +743,7 @@ namespace sx
             gridLines->render(shaders->basicShader);
         }
 
-        if (mainMenu.usePointLightShader || mainMenu.useDirectionalLightShader || mainMenu.useSpotLightShader )
+        if (mainMenu.useLightShader)
         {
             reflection->bind();
 
@@ -1039,7 +1039,7 @@ namespace sx
         grid->render(shaders->basicShader);
         gridLines->render(shaders->basicShader);
 
-        if (mainMenu.usePointLightShader)
+        if (mainMenu.useLightShader)
         {
             reflection->bind();
 

@@ -25,20 +25,10 @@ namespace sx
         if (ImGui::Button("Light"))
             lightBtnPressed = !lightBtnPressed;
 
-        std::string lightText = usePointLightShader ? "Disable Point Lightning" : "Enable Point Lightning";
+        std::string lightText = useLightShader ? "Disable Lightning" : "Enable Lightning";
 
         if (ImGui::Button(lightText.c_str()))
-            usePointLightShader = !usePointLightShader;
-
-        lightText = useDirectionalLightShader ? "Disable Dir. Lightning" : "Enable Dir. Lightning";
-
-        if (ImGui::Button(lightText.c_str()))
-            useDirectionalLightShader = !useDirectionalLightShader;
-
-        lightText = useSpotLightShader ? "Disable Spot Lightning" : "Enable Spot Lightning";
-
-        if (ImGui::Button(lightText.c_str()))
-            useSpotLightShader = !useSpotLightShader;
+            useLightShader = !useLightShader;
 
         lightText = usePbrLightShader ? "Disable PBR Lightning" : "Enable PBR Lightning";
 
@@ -482,9 +472,11 @@ namespace sx
 
         if (ImGui::CollapsingHeader("Spot"))
         {
-            ImGui::SliderFloat("Cutoff", cutOff, 0.f, 15.f);
+            if (*cutOff > * outerCutOff)
+                *cutOff -= 1.f;
+            ImGui::SliderFloat("Cutoff", cutOff, 0.f, *outerCutOff - 1.f);
             ImGui::InputFloat("Cut", cutOff);
-            ImGui::SliderFloat("OuterCutOff", outerCutOff, 0.f, 15.f);
+            ImGui::SliderFloat("OuterCutOff", outerCutOff, 0.f, 89.f);
             ImGui::InputFloat("Oco", outerCutOff);
         }
 
@@ -520,7 +512,7 @@ namespace sx
         stream.clear();
         stream.str("");
 
-        stream << usePointLightShader << '\n';
+        stream << useLightShader << '\n';
         stream << usePbrLightShader << '\n';
         stream << castShadows << '\n';
     }

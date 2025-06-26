@@ -24,27 +24,27 @@ void main()
    vec3 V = normalize(ViewPos - FragPos);
 
    vec3 R = reflect(-V, N);
-   
+
    vec3 finalRefl;
    vec3 envRefl = vec3(0.0);
    float mipLevel = roughness * 8.0;
 
    if(useSkybox == 1)
-    envRefl = textureLod(skybox, R, mipLevel).rgb;
+      envRefl = textureLod(skybox, R, mipLevel).rgb;
 
-    vec4 planarRefl = texture(reflectionTexture, TexCoords);
+   vec4 planarRefl = texture(reflectionTexture, TexCoords);
 
-    float fresnel = pow(1.0 - max(dot(N,V),0.0),5.0);
-    fresnel = mix(0.04,1.0,fresnel);
+   float fresnel = pow(1.0 - max(dot(N, V), 0.0), 5.0);
+   fresnel = mix(0.04, 1.0, fresnel);
 
-    float reflStrength = 1.0 - roughness * 0.8;
+   float reflStrength = 1.0 - roughness * 0.8;
 
-    finalRefl = mix(planarRefl.rgb, envRefl, 0.7) * reflStrength;
+   finalRefl = mix(planarRefl.rgb, envRefl, fresnel) * reflStrength;
 
-    vec3 diffuse = aColor * (1.0-metallic) * roughness * ao;
-    vec3 specular = mix(vec3(0.04),aColor,metallic);
+   vec3 diffuse = aColor * (1.0 - metallic);
+   vec3 specular = mix(vec3(0.04), aColor, metallic);
 
-    vec3 color = diffuse + finalRefl * specular * fresnel;
-     
+   vec3 color = (diffuse * ao) + (finalRefl * specular * fresnel);
+
    FragColor = vec4(color, 1.0);
 }
