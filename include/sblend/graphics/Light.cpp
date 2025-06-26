@@ -102,6 +102,7 @@ namespace sx
 
         stream << LightTypesMap[type] << '\n';
         stream << position.x << ' ' << position.y << ' ' << position.z << '\n';
+        stream << direction.x << ' ' << direction.y << ' ' << direction.z << '\n';
         stream << diffuse.x << ' ' << diffuse.y << ' ' << diffuse.z << '\n';
         stream << specular.x << ' ' << specular.y << ' ' << specular.z << '\n';
         stream << ambient.x << ' ' << ambient.y << ' ' << ambient.z << '\n';
@@ -111,5 +112,6 @@ namespace sx
         stream << quadratic << '\n';
         stream << cutOff << '\n';
         stream << outerCutOff << '\n';
+        stream << intensity <<'\n';
     }
 }
