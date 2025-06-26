@@ -20,6 +20,7 @@ struct Light {
     float quadratic;
     float cutOff;
     float outerCutOff;
+    float intensity;
     int type;
 };
 uniform Light light[6];
@@ -156,9 +157,8 @@ vec3 processSpotLight(int index, vec3 materialDiffuse, vec3 materialSpecular, fl
     vec3 lightDir = normalize(light[index].position - FragPos);
     float theta = dot(lightDir, normalize(-light[index].direction));
     float epsilon = light[index].cutOff - light[index].outerCutOff;
-    float intensity = clamp((theta - light[index].outerCutOff) / epsilon, 0.0, 1.0);
 
-    if (intensity > 0.0)
+    if (light[index].intensity > 0.0)
     {
         float distance = length(light[index].position - FragPos);
         float attenuation = 1.0 / (light[index].constant + light[index].linear * distance + light[index].quadratic * (distance * distance));
@@ -173,7 +173,7 @@ vec3 processSpotLight(int index, vec3 materialDiffuse, vec3 materialSpecular, fl
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
         vec3 specular = light[index].specular * spec * materialSpecular * light[index].color;
 
-        return ambient + (diffuse + specular) * intensity * attenuation;
+        return ambient + (diffuse + specular) * light[index].intensity * attenuation;
     }
 
     return vec3(0.0);

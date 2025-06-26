@@ -27,6 +27,7 @@ namespace sx
         quadratic = 0.032f;
         cutOff = 12.5f;
         outerCutOff = 15.f;
+        intensity = 1.f;
         view = glm::lookAt(position, glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
         projection = glm::ortho(-5.f, 5.f, -5.f, 5.f, 0.1f, 20.f);
     }
@@ -77,6 +78,7 @@ namespace sx
                                 glm::cos(glm::radians(cutOff)));
                 shader.setFloat(("light[" + std::to_string(index) + "].outerCutOff").c_str(),
                                 glm::cos(glm::radians(outerCutOff)));
+                shader.setFloat(("light[" + std::to_string(index) + "].intensity").c_str(), intensity);
                 shader.setInt(("light[" + std::to_string(index) + "].type").c_str(), (int) type);
                 view = glm::lookAt(position, glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
                 shader.setMat4(("lightView[" + std::to_string(index) + "]").c_str(), view);

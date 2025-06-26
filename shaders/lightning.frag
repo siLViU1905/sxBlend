@@ -22,6 +22,7 @@ struct Light
     float quadratic;
     float cutOff;
     float outerCutOff;
+    float intensity;
     int type;
 };
 
@@ -122,7 +123,6 @@ vec3 processSpotLight(int index, vec3 materialColor, vec3 normal)
         light[index].quadratic * (distance * distance));
 
     float epsilon = light[index].cutOff - light[index].outerCutOff;
-    float intensity = clamp((theta - light[index].outerCutOff) / epsilon, 0.0, 1.0);
 
     vec3 ambient = light[index].ambient * materialColor;
 
@@ -135,8 +135,8 @@ vec3 processSpotLight(int index, vec3 materialColor, vec3 normal)
     vec3 specular = light[index].specular * spec * light[index].color;
 
     ambient *= attenuation;
-    diffuse *= attenuation * intensity;
-    specular *= attenuation * intensity;
+    diffuse *= attenuation * light[index].intensity;
+    specular *= attenuation * light[index].intensity;
 
     return ambient + diffuse + specular;
 

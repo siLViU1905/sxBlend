@@ -12,7 +12,6 @@
 
 namespace sx
 {
-
     enum class LoadRequestType
     {
         NONE,
@@ -83,8 +82,9 @@ namespace sx
         float *constant;
         float *linear;
         float *quadratic;
-        float* cutOff;
-        float* outerCutOff;
+        float *cutOff;
+        float *outerCutOff;
+        float *intensity;
 
     protected:
         void render() override;
@@ -216,7 +216,6 @@ namespace sx
     public:
         friend class Application;
     };
-
 }
 
 #endif // __MENU_H__

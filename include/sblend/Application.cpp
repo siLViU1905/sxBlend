@@ -390,6 +390,7 @@ namespace sx
             mainMenu.lightMenu.quadratic = &light.quadratic;
             mainMenu.lightMenu.cutOff = &light.cutOff;
             mainMenu.lightMenu.outerCutOff = &light.outerCutOff;
+            mainMenu.lightMenu.intensity = &light.intensity;
             renderLightMenu = true;
 
             if (mainMenu.deleteLight)

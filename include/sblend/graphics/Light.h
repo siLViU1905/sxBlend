@@ -45,6 +45,7 @@ namespace sx
         float quadratic;
         float cutOff;
         float outerCutOff;
+        float intensity;
 
         glm::mat4 view, projection;
 

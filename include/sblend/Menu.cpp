@@ -478,6 +478,8 @@ namespace sx
             ImGui::InputFloat("Cut", cutOff);
             ImGui::SliderFloat("OuterCutOff", outerCutOff, 0.f, 89.f);
             ImGui::InputFloat("Oco", outerCutOff);
+            ImGui::SliderFloat("Intensity", intensity, 0.f, 1.f);
+            ImGui::InputFloat("Int", intensity);
         }
 
         ImGui::End();
