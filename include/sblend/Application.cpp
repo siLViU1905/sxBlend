@@ -769,7 +769,7 @@ namespace sx
             for (auto &rm: meshes->meshes)
                 if (rm.isReflective)
                 {
-                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, surfaceHeight);
+                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, rm);
                     shaders->lightningShader.setMat4("camera.view", reflectionView);
                     for (auto &m: meshes->meshes)
                         if (!m.isReflective)
@@ -829,8 +829,7 @@ namespace sx
             for (auto &rm: meshes->meshes)
                 if (rm.isReflective)
                 {
-                    float surfaceHeight = rm.position.y;
-                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, surfaceHeight);
+                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, rm);
                     shaders->basicShader.setMat4("camera.view", reflectionView);
                     for (auto &m: meshes->meshes)
                         if (!m.isReflective)
@@ -892,8 +891,7 @@ namespace sx
             for (auto &rm: meshes->meshes)
                 if (rm.isReflective)
                 {
-                    float surfaceHeight = rm.position.y;
-                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, surfaceHeight);
+                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, rm);
                     shaders->basicShader.setMat4("camera.view", reflectionView);
                     for (auto &m: meshes->meshes)
                         if (!m.isReflective)
@@ -1059,8 +1057,7 @@ namespace sx
             for (auto &rm: meshes->meshes)
                 if (rm.isReflective)
                 {
-                    float surfaceHeight = rm.position.y;
-                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, surfaceHeight);
+                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, rm);
                     shaders->lightningShader.setMat4("camera.view", reflectionView);
                     for (auto &m: meshes->meshes)
                         if (!m.isReflective)
@@ -1117,8 +1114,7 @@ namespace sx
             for (auto &rm: meshes->meshes)
                 if (rm.isReflective)
                 {
-                    float surfaceHeight = rm.position.y;
-                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, surfaceHeight);
+                    glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, rm);
                     shaders->lightningShader.setMat4("camera.view", reflectionView);
                     for (auto &m: meshes->meshes)
                         if (!m.isReflective)

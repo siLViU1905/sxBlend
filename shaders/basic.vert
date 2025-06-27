@@ -15,6 +15,8 @@ out vec3 FragPos;
 out mat3 TBN;
 out vec3 WorldPos;
 out vec3 skyBoxTexCoords;
+out vec2 reflectionTexCoords;
+uniform mat4 reflectionViewMatrix;
 
 uniform mat4 projection;
 
@@ -53,9 +55,8 @@ void main()
     T = normalize(T - dot(T, N) * N);
     
     
-    if (dot(cross(N, T), B) < 0.0) {
+    if (dot(cross(N, T), B) < 0.0)
         T = T * -1.0;
-    }
     
     TBN = mat3(T, B, N);
     Normal = N; 
@@ -63,4 +64,7 @@ void main()
     FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
 
     skyBoxTexCoords = aPos;
+
+    vec4 reflectionClipSpace = projection * reflectionViewMatrix * vec4(WorldPos,1.0);
+    reflectionTexCoords = (reflectionClipSpace.xy / reflectionClipSpace.w) * 0.5 + 0.5;
 }
