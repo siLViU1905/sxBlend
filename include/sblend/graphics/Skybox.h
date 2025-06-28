@@ -11,11 +11,15 @@ class Skybox {
 public:
   Skybox(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
 
+  std::string path;
+
   void loadTexture(const std::vector<std::string>& faces);
 
   void render(Shader& shader);
 
   int getTextureID() const;
+
+  void getProperties(std::ostringstream& stream);
 
   ~Skybox();
 };

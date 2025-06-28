@@ -76,6 +76,7 @@
         "thread": "cpp",
         "map": "cpp",
         "unordered_set": "cpp",
-        "any": "cpp"
+        "any": "cpp",
+        "core": "cpp"
     }
 }

@@ -31,14 +31,14 @@ namespace sx
         if (action == GLFW_PRESS)
             switch (key)
             {
-                case GLFW_KEY_ESCAPE:
-                    glfwSetWindowShouldClose(window, true);
-                    break;
+            case GLFW_KEY_ESCAPE:
+                glfwSetWindowShouldClose(window, true);
+                break;
 
-                case GLFW_KEY_LEFT_ALT:
-                    swapInterval = !swapInterval;
-                    glfwSwapInterval(swapInterval);
-                    break;
+            case GLFW_KEY_LEFT_ALT:
+                swapInterval = !swapInterval;
+                glfwSwapInterval(swapInterval);
+                break;
             }
     }
 
@@ -51,8 +51,8 @@ namespace sx
         WINDOW_HEIGHT = height;
         WINDOW_WIDTH = width;
         projection =
-                glm::perspective(glm::radians(fov),
-                                 (float) WINDOW_WIDTH / (float) WINDOW_HEIGHT, 0.1f, 100.f);
+            glm::perspective(glm::radians(fov),
+                             (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.f);
     }
 
     void Application::scrollCallback(Window window, double x, double y)
@@ -61,10 +61,10 @@ namespace sx
             fov = 15.f;
         else if (fov > 120.f)
             fov = 120.f;
-        fov += -(float) y * 2.5f;
+        fov += -(float)y * 2.5f;
         projection =
-                glm::perspective(glm::radians(fov),
-                                 (float) WINDOW_WIDTH / (float) WINDOW_HEIGHT, 0.1f, 100.f);
+            glm::perspective(glm::radians(fov),
+                             (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.f);
     }
 
     void Application::newMenuFrame()
@@ -89,125 +89,132 @@ namespace sx
 
             switch (mainMenu.selectedMesh)
             {
-                case MeshType::PLANE:
-                    MeshManager::generatePlaneMesh(vertices, indices);
+            case MeshType::PLANE:
+                MeshManager::generatePlaneMesh(vertices, indices);
+                meshes->meshes.emplace_back(vertices, indices);
+                meshes->meshes.back().type = mainMenu.selectedMesh;
+                meshes->meshes.back().useFlatReflection = 1;
+                mainMenu.selectedMesh = MeshType::NaN;
+                break;
+
+            case MeshType::CIRCLE:
+                if (mainMenu.generate)
+                {
+                    MeshManager::generateCircleMesh(vertices, indices, mainMenu.segments);
                     meshes->meshes.emplace_back(vertices, indices);
                     meshes->meshes.back().type = mainMenu.selectedMesh;
+                    meshes->meshes.back().slices = mainMenu.segments;
+                    meshes->meshes.back().useFlatReflection = 0;
+                    mainMenu.existentMeshes.emplace_back(
+                        "Circle " +
+                        std::to_string(
+                            mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]));
+                    mainMenu.selectedMeshIndicator.emplace_back(0);
+                    ++mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh];
+                    mainMenu.generate = false;
+                    mainMenu.newCircle = false;
                     mainMenu.selectedMesh = MeshType::NaN;
-                    break;
+                    mainMenu.meshBtnPressed = false;
+                }
+                break;
 
-                case MeshType::CIRCLE:
-                    if (mainMenu.generate)
-                    {
-                        MeshManager::generateCircleMesh(vertices, indices, mainMenu.segments);
-                        meshes->meshes.emplace_back(vertices, indices);
-                        meshes->meshes.back().type = mainMenu.selectedMesh;
-                        meshes->meshes.back().slices = mainMenu.segments;
-                        mainMenu.existentMeshes.emplace_back(
-                            "Circle " +
-                            std::to_string(
-                                mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]));
-                        mainMenu.selectedMeshIndicator.emplace_back(0);
-                        ++mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh];
-                        mainMenu.generate = false;
-                        mainMenu.newCircle = false;
-                        mainMenu.selectedMesh = MeshType::NaN;
-                        mainMenu.meshBtnPressed = false;
-                    }
-                    break;
+            case MeshType::CUBE:
+                MeshManager::generateCubeMesh(vertices, indices);
+                meshes->meshes.emplace_back(vertices, indices);
+                meshes->meshes.back().type = mainMenu.selectedMesh;
+                meshes->meshes.back().useFlatReflection = 1;
+                mainMenu.selectedMesh = MeshType::NaN;
+                break;
 
-                case MeshType::CUBE:
-                    MeshManager::generateCubeMesh(vertices, indices);
+            case MeshType::CONE:
+                if (mainMenu.generate)
+                {
+                    MeshManager::generateConeMesh(vertices, indices, mainMenu.segments);
                     meshes->meshes.emplace_back(vertices, indices);
                     meshes->meshes.back().type = mainMenu.selectedMesh;
+                    meshes->meshes.back().slices = mainMenu.segments;
+                    meshes->meshes.back().stacks = 0;
+                    meshes->meshes.back().useFlatReflection = 0;
+                    mainMenu.existentMeshes.emplace_back(
+                        "Cone " +
+                        std::to_string(
+                            mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]));
+                    mainMenu.selectedMeshIndicator.emplace_back(0);
+                    ++mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh];
+                    mainMenu.generate = false;
+                    mainMenu.newCone = false;
                     mainMenu.selectedMesh = MeshType::NaN;
-                    break;
+                    mainMenu.meshBtnPressed = false;
+                }
+                break;
 
-                case MeshType::CONE:
-                    if (mainMenu.generate)
-                    {
-                        MeshManager::generateConeMesh(vertices, indices, mainMenu.segments);
-                        meshes->meshes.emplace_back(vertices, indices);
-                        meshes->meshes.back().type = mainMenu.selectedMesh;
-                        meshes->meshes.back().slices = mainMenu.segments;
-                        meshes->meshes.back().stacks = 0;
-                        mainMenu.existentMeshes.emplace_back(
-                            "Cone " +
-                            std::to_string(
-                                mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]));
-                        mainMenu.selectedMeshIndicator.emplace_back(0);
-                        ++mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh];
-                        mainMenu.generate = false;
-                        mainMenu.newCone = false;
-                        mainMenu.selectedMesh = MeshType::NaN;
-                        mainMenu.meshBtnPressed = false;
-                    }
-                    break;
+            case MeshType::CYLINDER:
+                if (mainMenu.generate)
+                {
+                    MeshManager::generateCylinderMesh(vertices, indices, mainMenu.segments);
+                    meshes->meshes.emplace_back(vertices, indices);
+                    meshes->meshes.back().type = mainMenu.selectedMesh;
+                    meshes->meshes.back().slices = mainMenu.segments;
+                    meshes->meshes.back().stacks = 0;
+                    meshes->meshes.back().useFlatReflection = 0;
+                    mainMenu.existentMeshes.emplace_back(
+                        "Cylinder " +
+                        std::to_string(
+                            mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]));
+                    mainMenu.selectedMeshIndicator.emplace_back(0);
+                    ++mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh];
+                    mainMenu.generate = false;
+                    mainMenu.newCylinder = false;
+                    mainMenu.selectedMesh = MeshType::NaN;
+                    mainMenu.meshBtnPressed = false;
+                }
+                break;
 
-                case MeshType::CYLINDER:
-                    if (mainMenu.generate)
-                    {
-                        MeshManager::generateCylinderMesh(vertices, indices, mainMenu.segments);
-                        meshes->meshes.emplace_back(vertices, indices);
-                        meshes->meshes.back().type = mainMenu.selectedMesh;
-                        meshes->meshes.back().slices = mainMenu.segments;
-                        meshes->meshes.back().stacks = 0;
-                        mainMenu.existentMeshes.emplace_back(
-                            "Cylinder " +
-                            std::to_string(
-                                mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]));
-                        mainMenu.selectedMeshIndicator.emplace_back(0);
-                        ++mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh];
-                        mainMenu.generate = false;
-                        mainMenu.newCylinder = false;
-                        mainMenu.selectedMesh = MeshType::NaN;
-                        mainMenu.meshBtnPressed = false;
-                    }
-                    break;
+            case MeshType::SPHERE:
+                if (mainMenu.generate)
+                {
+                    MeshManager::generateSphereMesh(vertices, indices, mainMenu.slices,
+                                                    mainMenu.stacks);
+                    meshes->meshes.emplace_back(vertices, indices);
+                    meshes->meshes.back().type = mainMenu.selectedMesh;
+                    meshes->meshes.back().slices = mainMenu.slices;
+                    meshes->meshes.back().stacks = mainMenu.stacks;
+                    meshes->meshes.back().useFlatReflection = 0;
+                    mainMenu.existentMeshes.emplace_back(
+                        "Sphere " +
+                        std::to_string(
+                            mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]));
+                    mainMenu.selectedMeshIndicator.emplace_back(0);
+                    ++mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh];
+                    mainMenu.generate = false;
+                    mainMenu.newSphere = false;
+                    mainMenu.selectedMesh = MeshType::NaN;
+                    mainMenu.meshBtnPressed = false;
+                }
+                break;
 
-                case MeshType::SPHERE:
-                    if (mainMenu.generate)
-                    {
-                        MeshManager::generateSphereMesh(vertices, indices, mainMenu.slices,
-                                                        mainMenu.stacks);
-                        meshes->meshes.emplace_back(vertices, indices);
-                        meshes->meshes.back().type = mainMenu.selectedMesh;
-                        meshes->meshes.back().slices = mainMenu.slices;
-                        meshes->meshes.back().stacks = mainMenu.stacks;
-                        mainMenu.existentMeshes.emplace_back(
-                            "Sphere " +
-                            std::to_string(
-                                mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]));
-                        mainMenu.selectedMeshIndicator.emplace_back(0);
-                        ++mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh];
-                        mainMenu.generate = false;
-                        mainMenu.newSphere = false;
-                        mainMenu.selectedMesh = MeshType::NaN;
-                        mainMenu.meshBtnPressed = false;
-                    }
-                    break;
-
-                case MeshType::TORUS:
-                    if (mainMenu.generate)
-                    {
-                        MeshManager::generateTorusMesh(vertices, indices, mainMenu.slices,
-                                                       mainMenu.stacks);
-                        meshes->meshes.emplace_back(vertices, indices);
-                        meshes->meshes.back().type = mainMenu.selectedMesh;
-                        meshes->meshes.back().slices = mainMenu.slices;
-                        meshes->meshes.back().stacks = mainMenu.stacks;
-                        mainMenu.existentMeshes.emplace_back(
-                            "Torus " +
-                            std::to_string(
-                                mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]));
-                        mainMenu.selectedMeshIndicator.emplace_back(0);
-                        ++mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh];
-                        mainMenu.generate = false;
-                        mainMenu.newTorus = false;
-                        mainMenu.selectedMesh = MeshType::NaN;
-                        mainMenu.meshBtnPressed = false;
-                    }
-                    break;
+            case MeshType::TORUS:
+                if (mainMenu.generate)
+                {
+                    MeshManager::generateTorusMesh(vertices, indices, mainMenu.slices,
+                                                   mainMenu.stacks);
+                    meshes->meshes.emplace_back(vertices, indices);
+                    meshes->meshes.back().type = mainMenu.selectedMesh;
+                    meshes->meshes.back().slices = mainMenu.slices;
+                    meshes->meshes.back().stacks = mainMenu.stacks;
+                    meshes->meshes.back().useFlatReflection = 0;
+                    mainMenu.existentMeshes.emplace_back(
+                        "Torus " +
+                        std::to_string(
+                            mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]));
+                    mainMenu.selectedMeshIndicator.emplace_back(0);
+                    ++mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh];
+                    mainMenu.generate = false;
+                    mainMenu.newTorus = false;
+                    mainMenu.selectedMesh = MeshType::NaN;
+                    mainMenu.meshBtnPressed = false;
+                }
+                break;
             }
         }
 
@@ -215,33 +222,33 @@ namespace sx
         {
             switch (mainMenu.selectedLight)
             {
-                case LightType::POINT:
-                    lights.lights.emplace_back(LightType::POINT);
-                    mainMenu.selectedLight = LightType::NaN;
-                    shaders->lightningShader.setInt("lightCount", ++lightCount);
-                    shaders->modelLightningShader.setInt("lightCount", lightCount);
-                    break;
+            case LightType::POINT:
+                lights.lights.emplace_back(LightType::POINT);
+                mainMenu.selectedLight = LightType::NaN;
+                shaders->lightningShader.setInt("lightCount", ++lightCount);
+                shaders->modelLightningShader.setInt("lightCount", lightCount);
+                break;
 
-                case LightType::DIRECTIONAL:
-                    lights.lights.emplace_back(LightType::DIRECTIONAL);
-                    mainMenu.selectedLight = LightType::NaN;
-                    shaders->lightningShader.setInt("lightCount", ++lightCount);
-                    shaders->modelLightningShader.setInt("lightCount", lightCount);
-                    break;
+            case LightType::DIRECTIONAL:
+                lights.lights.emplace_back(LightType::DIRECTIONAL);
+                mainMenu.selectedLight = LightType::NaN;
+                shaders->lightningShader.setInt("lightCount", ++lightCount);
+                shaders->modelLightningShader.setInt("lightCount", lightCount);
+                break;
 
-                case LightType::SPOT:
-                    lights.lights.emplace_back(LightType::SPOT);
-                    mainMenu.selectedLight = LightType::NaN;
-                    shaders->lightningShader.setInt("lightCount", ++lightCount);
-                    shaders->modelLightningShader.setInt("lightCount", lightCount);
-                    break;
+            case LightType::SPOT:
+                lights.lights.emplace_back(LightType::SPOT);
+                mainMenu.selectedLight = LightType::NaN;
+                shaders->lightningShader.setInt("lightCount", ++lightCount);
+                shaders->modelLightningShader.setInt("lightCount", lightCount);
+                break;
 
-                case LightType::PBR:
-                    lights.lights.emplace_back(LightType::PBR);
-                    mainMenu.selectedLight = LightType::NaN;
-                    shaders->pbrLightningShader.setInt("lightCount", ++pbrLightCount);
-                    shaders->modelPbrLightningShader.setInt("lightCount", pbrLightCount);
-                    break;
+            case LightType::PBR:
+                lights.lights.emplace_back(LightType::PBR);
+                mainMenu.selectedLight = LightType::NaN;
+                shaders->pbrLightningShader.setInt("lightCount", ++pbrLightCount);
+                shaders->modelPbrLightningShader.setInt("lightCount", pbrLightCount);
+                break;
             }
         }
 
@@ -254,7 +261,8 @@ namespace sx
                 mainMenu.errorMenu.title = "Model loading failed";
                 mainMenu.errorMenu.message = "File not found or unsupported format";
                 models.pop_back();
-            } else
+            }
+            else
             {
                 mainMenu.existentModels.emplace_back("Model " + std::to_string(mainMenu.modelCounter++));
                 mainMenu.selectedModelIndicator.emplace_back(0);
@@ -268,20 +276,22 @@ namespace sx
         if (mainMenu.selectedMeshIndex != -1)
         {
             mainMenu.objectMenu.position =
-                    glm::value_ptr(meshes->meshes[mainMenu.selectedMeshIndex].position);
+                glm::value_ptr(meshes->meshes[mainMenu.selectedMeshIndex].position);
             mainMenu.objectMenu.velocity =
-                    glm::value_ptr(meshes->meshes[mainMenu.selectedMeshIndex].velocity);
+                glm::value_ptr(meshes->meshes[mainMenu.selectedMeshIndex].velocity);
             mainMenu.objectMenu.rotation =
-                    glm::value_ptr(meshes->meshes[mainMenu.selectedMeshIndex].angles);
+                glm::value_ptr(meshes->meshes[mainMenu.selectedMeshIndex].angles);
             mainMenu.objectMenu.scale =
-                    glm::value_ptr(meshes->meshes[mainMenu.selectedMeshIndex].scale);
+                glm::value_ptr(meshes->meshes[mainMenu.selectedMeshIndex].scale);
             mainMenu.objectMenu.color =
-                    glm::value_ptr(meshes->meshes[mainMenu.selectedMeshIndex].color);
+                glm::value_ptr(meshes->meshes[mainMenu.selectedMeshIndex].color);
             mainMenu.objectMenu.metallic =
-                    &meshes->meshes[mainMenu.selectedMeshIndex].metallic;
+                &meshes->meshes[mainMenu.selectedMeshIndex].metallic;
             mainMenu.objectMenu.roughness =
-                    &meshes->meshes[mainMenu.selectedMeshIndex].roughness;
+                &meshes->meshes[mainMenu.selectedMeshIndex].roughness;
             mainMenu.objectMenu.ao = &meshes->meshes[mainMenu.selectedMeshIndex].ao;
+            mainMenu.objectMenu.reflective = &meshes->meshes[mainMenu.selectedMeshIndex].isReflective;
+            mainMenu.objectMenu.flatReflection = &meshes->meshes[mainMenu.selectedMeshIndex].useFlatReflection;
             renderObjectMenu = true;
 
             handleRightClickedMouseEventForMeshes();
@@ -297,12 +307,6 @@ namespace sx
                 }
                 mainMenu.loadRequest.type = LoadRequestType::NONE;
                 mainMenu.loadRequest.path.clear();
-            }
-
-            if (mainMenu.setReflective)
-            {
-                meshes->meshes[mainMenu.selectedMeshIndex].isReflective = true;
-                mainMenu.setReflective = false;
             }
 
             if (mainMenu.deleteObject)
@@ -324,20 +328,22 @@ namespace sx
         if (mainMenu.selectedModelIndex != -1)
         {
             mainMenu.objectMenu.position =
-                    glm::value_ptr(models[mainMenu.selectedModelIndex].position);
+                glm::value_ptr(models[mainMenu.selectedModelIndex].position);
             mainMenu.objectMenu.velocity =
-                    glm::value_ptr(models[mainMenu.selectedModelIndex].velocity);
+                glm::value_ptr(models[mainMenu.selectedModelIndex].velocity);
             mainMenu.objectMenu.rotation =
-                    glm::value_ptr(models[mainMenu.selectedModelIndex].angles);
+                glm::value_ptr(models[mainMenu.selectedModelIndex].angles);
             mainMenu.objectMenu.scale =
-                    glm::value_ptr(models[mainMenu.selectedModelIndex].scale);
+                glm::value_ptr(models[mainMenu.selectedModelIndex].scale);
             mainMenu.objectMenu.color =
-                    glm::value_ptr(models[mainMenu.selectedModelIndex].color);
+                glm::value_ptr(models[mainMenu.selectedModelIndex].color);
             mainMenu.objectMenu.metallic =
-                    &models[mainMenu.selectedModelIndex].metallic;
+                &models[mainMenu.selectedModelIndex].metallic;
             mainMenu.objectMenu.roughness =
-                    &models[mainMenu.selectedModelIndex].roughness;
+                &models[mainMenu.selectedModelIndex].roughness;
             mainMenu.objectMenu.ao = &models[mainMenu.selectedModelIndex].ao;
+            mainMenu.objectMenu.reflective = &models[mainMenu.selectedModelIndex].isReflective;
+            mainMenu.objectMenu.flatReflection = &models[mainMenu.selectedModelIndex].useFlatReflection;
             renderObjectMenu = true;
 
             handleRightClickedMouseEventForModels();
@@ -417,26 +423,30 @@ namespace sx
             std::string filename = mainMenu.fileNameBuffer;
             filename += ".sblend";
             std::ofstream outputFile(filename);
-            for (Mesh &mesh: meshes->meshes)
+            for (Mesh &mesh : meshes->meshes)
             {
                 mesh.getProperties(saveProperties);
                 outputFile << saveProperties.str() << '\n';
             }
             outputFile << "LIGHTS\n";
-            for (const Light &light: lights.lights)
+            for (const Light &light : lights.lights)
             {
                 light.getProperties(saveProperties);
                 outputFile << saveProperties.str() << '\n';
             }
             outputFile << "MODELS\n";
-            for (Model &model: models)
+            for (Model &model : models)
             {
                 model.getProperties(saveProperties);
                 outputFile << saveProperties.str() << '\n';
             }
+            outputFile << "SKYBOX\n";
+            skybox->getProperties(saveProperties);
+            outputFile << saveProperties.str() << '\n';
             outputFile << "Scene\n";
             mainMenu.getProperties(saveProperties);
             outputFile << saveProperties.str() << '\n';
+            outputFile << useSkybox << '\n';
             outputFile.close();
             mainMenu.saveProperties = false;
         }
@@ -459,101 +469,102 @@ namespace sx
                     inputFile >> stacks;
                     switch (meshty)
                     {
-                        case MeshType::PLANE:
-                            MeshManager::generatePlaneMesh(vertices, indices);
-                            meshes->meshes.emplace_back(vertices, indices);
-                            mainMenu.existentMeshes.emplace_back(
-                                "Plane " +
-                                std::to_string(
-                                    mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]));
-                            mainMenu.selectedMeshIndicator.emplace_back(0);
-                            mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]++;
-                            break;
+                    case MeshType::PLANE:
+                        MeshManager::generatePlaneMesh(vertices, indices);
+                        meshes->meshes.emplace_back(vertices, indices);
+                        mainMenu.existentMeshes.emplace_back(
+                            "Plane " +
+                            std::to_string(
+                                mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]));
+                        mainMenu.selectedMeshIndicator.emplace_back(0);
+                        mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]++;
+                        break;
 
-                        case MeshType::CIRCLE:
-                            MeshManager::generateCircleMesh(vertices, indices, slices);
-                            meshes->meshes.emplace_back(vertices, indices);
-                            mainMenu.existentMeshes.emplace_back(
-                                "Circle " +
-                                std::to_string(
-                                    mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]));
-                            mainMenu.selectedMeshIndicator.emplace_back(0);
-                            mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]++;
-                            break;
+                    case MeshType::CIRCLE:
+                        MeshManager::generateCircleMesh(vertices, indices, slices);
+                        meshes->meshes.emplace_back(vertices, indices);
+                        mainMenu.existentMeshes.emplace_back(
+                            "Circle " +
+                            std::to_string(
+                                mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]));
+                        mainMenu.selectedMeshIndicator.emplace_back(0);
+                        mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]++;
+                        break;
 
-                        case MeshType::CUBE:
-                            MeshManager::generateCubeMesh(vertices, indices);
-                            meshes->meshes.emplace_back(vertices, indices);
-                            mainMenu.existentMeshes.emplace_back(
-                                "Cube " +
-                                std::to_string(
-                                    mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]));
-                            mainMenu.selectedMeshIndicator.emplace_back(0);
-                            mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]++;
-                            break;
+                    case MeshType::CUBE:
+                        MeshManager::generateCubeMesh(vertices, indices);
+                        meshes->meshes.emplace_back(vertices, indices);
+                        mainMenu.existentMeshes.emplace_back(
+                            "Cube " +
+                            std::to_string(
+                                mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]));
+                        mainMenu.selectedMeshIndicator.emplace_back(0);
+                        mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]++;
+                        break;
 
-                        case MeshType::CONE:
-                            MeshManager::generateConeMesh(vertices, indices, slices);
-                            meshes->meshes.emplace_back(vertices, indices);
-                            mainMenu.existentMeshes.emplace_back(
-                                "Cone " +
-                                std::to_string(
-                                    mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]));
-                            mainMenu.selectedMeshIndicator.emplace_back(0);
-                            mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]++;
-                            break;
+                    case MeshType::CONE:
+                        MeshManager::generateConeMesh(vertices, indices, slices);
+                        meshes->meshes.emplace_back(vertices, indices);
+                        mainMenu.existentMeshes.emplace_back(
+                            "Cone " +
+                            std::to_string(
+                                mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]));
+                        mainMenu.selectedMeshIndicator.emplace_back(0);
+                        mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]++;
+                        break;
 
-                        case MeshType::CYLINDER:
-                            MeshManager::generateCylinderMesh(vertices, indices, slices);
-                            meshes->meshes.emplace_back(vertices, indices);
-                            mainMenu.existentMeshes.emplace_back(
-                                "Cylinder " +
-                                std::to_string(
-                                    mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]));
-                            mainMenu.selectedMeshIndicator.emplace_back(0);
-                            mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]++;
-                            break;
+                    case MeshType::CYLINDER:
+                        MeshManager::generateCylinderMesh(vertices, indices, slices);
+                        meshes->meshes.emplace_back(vertices, indices);
+                        mainMenu.existentMeshes.emplace_back(
+                            "Cylinder " +
+                            std::to_string(
+                                mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]));
+                        mainMenu.selectedMeshIndicator.emplace_back(0);
+                        mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]++;
+                        break;
 
-                        case MeshType::SPHERE:
+                    case MeshType::SPHERE:
 
-                            MeshManager::generateSphereMesh(vertices, indices, slices, stacks);
-                            meshes->meshes.emplace_back(vertices, indices);
-                            mainMenu.existentMeshes.emplace_back(
-                                "Sphere " +
-                                std::to_string(
-                                    mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]));
-                            mainMenu.selectedMeshIndicator.emplace_back(0);
-                            mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]++;
-                            break;
+                        MeshManager::generateSphereMesh(vertices, indices, slices, stacks);
+                        meshes->meshes.emplace_back(vertices, indices);
+                        mainMenu.existentMeshes.emplace_back(
+                            "Sphere " +
+                            std::to_string(
+                                mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]));
+                        mainMenu.selectedMeshIndicator.emplace_back(0);
+                        mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]++;
+                        break;
 
-                        case MeshType::TORUS:
-                            MeshManager::generateTorusMesh(vertices, indices, slices, stacks);
-                            meshes->meshes.emplace_back(vertices, indices);
-                            mainMenu.existentMeshes.emplace_back(
-                                "Torus " +
-                                std::to_string(
-                                    mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]));
-                            mainMenu.selectedMeshIndicator.emplace_back(0);
-                            mainMenu.meshTypeCounter[(int) mainMenu.selectedMesh]++;
-                            break;
+                    case MeshType::TORUS:
+                        MeshManager::generateTorusMesh(vertices, indices, slices, stacks);
+                        meshes->meshes.emplace_back(vertices, indices);
+                        mainMenu.existentMeshes.emplace_back(
+                            "Torus " +
+                            std::to_string(
+                                mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]));
+                        mainMenu.selectedMeshIndicator.emplace_back(0);
+                        mainMenu.meshTypeCounter[(int)mainMenu.selectedMesh]++;
+                        break;
                     }
                     meshes->meshes.back().type = meshty;
                     inputFile >> meshes->meshes.back().position.x >>
-                            meshes->meshes.back().position.y >>
-                            meshes->meshes.back().position.z;
+                        meshes->meshes.back().position.y >>
+                        meshes->meshes.back().position.z;
                     inputFile >> meshes->meshes.back().velocity.x >>
-                            meshes->meshes.back().velocity.y >>
-                            meshes->meshes.back().velocity.z;
+                        meshes->meshes.back().velocity.y >>
+                        meshes->meshes.back().velocity.z;
                     inputFile >> meshes->meshes.back().scale.x >>
-                            meshes->meshes.back().scale.y >> meshes->meshes.back().scale.z;
+                        meshes->meshes.back().scale.y >> meshes->meshes.back().scale.z;
                     inputFile >> meshes->meshes.back().angles.x >>
-                            meshes->meshes.back().angles.y >> meshes->meshes.back().angles.z;
+                        meshes->meshes.back().angles.y >> meshes->meshes.back().angles.z;
                     inputFile >> meshes->meshes.back().color.x >>
-                            meshes->meshes.back().color.y >> meshes->meshes.back().color.z;
+                        meshes->meshes.back().color.y >> meshes->meshes.back().color.z;
                     inputFile >> meshes->meshes.back().metallic;
                     inputFile >> meshes->meshes.back().roughness;
                     inputFile >> meshes->meshes.back().ao;
                     inputFile >> meshes->meshes.back().isReflective;
+                    inputFile >> meshes->meshes.back().useFlatReflection;
                     meshes->meshes.back().slices = slices;
                     meshes->meshes.back().stacks = stacks;
                 }
@@ -567,17 +578,17 @@ namespace sx
                     else
                         shaders->pbrLightningShader.setInt("lightCount", ++pbrLightCount);
                     inputFile >> lights.lights.back().position.x >>
-                            lights.lights.back().position.y >> lights.lights.back().position.z;
+                        lights.lights.back().position.y >> lights.lights.back().position.z;
                     inputFile >> lights.lights.back().direction.x >>
-                            lights.lights.back().direction.y >> lights.lights.back().direction.z;
+                        lights.lights.back().direction.y >> lights.lights.back().direction.z;
                     inputFile >> lights.lights.back().diffuse.x >>
-                            lights.lights.back().diffuse.y >> lights.lights.back().diffuse.z;
+                        lights.lights.back().diffuse.y >> lights.lights.back().diffuse.z;
                     inputFile >> lights.lights.back().specular.x >>
-                            lights.lights.back().specular.y >> lights.lights.back().specular.z;
+                        lights.lights.back().specular.y >> lights.lights.back().specular.z;
                     inputFile >> lights.lights.back().ambient.x >>
-                            lights.lights.back().ambient.y >> lights.lights.back().ambient.z;
+                        lights.lights.back().ambient.y >> lights.lights.back().ambient.z;
                     inputFile >> lights.lights.back().color.x >>
-                            lights.lights.back().color.y >> lights.lights.back().color.z;
+                        lights.lights.back().color.y >> lights.lights.back().color.z;
                     inputFile >> lights.lights.back().linear;
                     inputFile >> lights.lights.back().constant;
                     inputFile >> lights.lights.back().quadratic;
@@ -587,23 +598,23 @@ namespace sx
                     if (lightty == LightType::POINT)
                         mainMenu.existentLights.emplace_back(
                             "Point " +
-                            std::to_string(mainMenu.lightTypeCounter[(int) lightty]));
+                            std::to_string(mainMenu.lightTypeCounter[(int)lightty]));
                     else if (lightty == LightType::DIRECTIONAL)
                         mainMenu.existentLights.emplace_back(
                             "Directional " +
-                            std::to_string(mainMenu.lightTypeCounter[(int) lightty]));
+                            std::to_string(mainMenu.lightTypeCounter[(int)lightty]));
                     else if (lightty == LightType::SPOT)
                         mainMenu.existentLights.emplace_back(
                             "Spot " +
-                            std::to_string(mainMenu.lightTypeCounter[(int) lightty]));
+                            std::to_string(mainMenu.lightTypeCounter[(int)lightty]));
                     else
                         mainMenu.existentLights.emplace_back(
                             "PBR " +
-                            std::to_string(mainMenu.lightTypeCounter[(int) lightty]));
+                            std::to_string(mainMenu.lightTypeCounter[(int)lightty]));
                     mainMenu.selectedLightIndicator.emplace_back(0);
-                    mainMenu.lightTypeCounter[(int) lightty]++;
+                    mainMenu.lightTypeCounter[(int)lightty]++;
                 }
-                while (inputFile >> ty && ty != "Scene")
+                while (inputFile >> ty && ty != "SKYBOX")
                 {
                     models.emplace_back(ty.c_str());
                     inputFile >> models.back().position.x >> models.back().position.y >> models.back().position.z;
@@ -614,11 +625,33 @@ namespace sx
                     inputFile >> models.back().metallic;
                     inputFile >> models.back().roughness;
                     inputFile >> models.back().ao;
+                    inputFile >> models.back().isReflective;
+                    inputFile >> models.back().useFlatReflection;
 
                     mainMenu.selectedModelIndicator.emplace_back(0);
                     mainMenu.existentModels.emplace_back("Model " + std::to_string(mainMenu.modelCounter));
                     mainMenu.modelCounter++;
                 }
+
+                std::string skyBoxPath;
+                inputFile >> skyBoxPath;
+                if(skyBoxPath != "!")
+                {
+                    size_t extensionPos = skyBoxPath.find_last_of('.');
+                     std::string imagesType = skyBoxPath.substr(extensionPos);
+                std::string directory = skyBoxPath.substr(
+                    0, skyBoxPath.find_last_of("/\\") + 1);
+                std::vector<std::string> faces;
+                faces.push_back(skyBoxPath);
+
+                faces.push_back(directory + "left" + imagesType);
+                faces.push_back(directory + "top" + imagesType);
+                faces.push_back(directory + "bottom" + imagesType);
+                faces.push_back(directory + "front" + imagesType);
+                faces.push_back(directory + "back" + imagesType);
+                skybox->loadTexture(faces);
+                }
+
                 inputFile >> mainMenu.useLightShader;
                 inputFile >> mainMenu.usePbrLightShader;
                 inputFile >> mainMenu.castShadows;
@@ -626,7 +659,8 @@ namespace sx
                 useSkybox = mainMenu.setSkybox;
                 mainMenu.loadRequest.type = LoadRequestType::NONE;
                 mainMenu.loadRequest.path.clear();
-            } else
+            }
+            else
             {
                 mainMenu.errorMenu.renderMenu = true;
                 mainMenu.errorMenu.title = "Scene loading failed";
@@ -642,13 +676,15 @@ namespace sx
                 mainMenu.errorMenu.renderMenu = true;
                 mainMenu.errorMenu.title = "Skybox images loading failed";
                 mainMenu.errorMenu.message = "File not found";
-            } else
+            }
+            else
             {
                 std::string imagesType = mainMenu.loadRequest.path.substr(extensionPos);
                 std::string directory = mainMenu.loadRequest.path.substr(
                     0, mainMenu.loadRequest.path.find_last_of("/\\") + 1);
                 std::vector<std::string> faces;
                 faces.push_back(mainMenu.loadRequest.path);
+
                 faces.push_back(directory + "left" + imagesType);
                 faces.push_back(directory + "top" + imagesType);
                 faces.push_back(directory + "bottom" + imagesType);
@@ -660,24 +696,40 @@ namespace sx
             mainMenu.loadRequest.type = LoadRequestType::NONE;
             mainMenu.loadRequest.path.clear();
         }
+
+        if (mainMenu.chosenMeshForBoolean != -1)
+        {
+            std::vector<Vertex> newVertices;
+            std::vector<uint32_t> newIndices;
+            MeshBoolean::performOperation(meshes->meshes[mainMenu.selectedMeshIndex],
+                meshes->meshes[mainMenu.chosenMeshForBoolean],
+                mainMenu.objectMenu.booleanOperation,
+                newVertices, newIndices);
+            if (newVertices.size() > 0 && newIndices.size() > 0)
+            {
+                meshes->meshes[mainMenu.selectedMeshIndex].setVertices(newVertices);
+                meshes->meshes[mainMenu.selectedMeshIndex].setIndices(newIndices);
+            }
+            mainMenu.objectMenu.renderMeshChoiceMenu = false;
+        }
     }
 
     void Application::updatePhysics()
     {
-        physicsWorld.deltaTime = (float) glfwGetTime() - physicsWorld.deltaTime;
+        physicsWorld.deltaTime = (float)glfwGetTime() - physicsWorld.deltaTime;
 
         if (mainMenu.simulationState)
         {
             if (mainMenu.savePositionAndVelocity)
             {
-                for (Mesh &mesh: meshes->meshes)
+                for (Mesh &mesh : meshes->meshes)
                     meshes->initialMeshesPositionsAndVelocities.push_back(
                         std::make_pair(mesh.position, mesh.velocity));
                 mainMenu.savePositionAndVelocity = false;
             }
-            for (Mesh &mesh1: meshes->meshes)
+            for (Mesh &mesh1 : meshes->meshes)
             {
-                for (Mesh &mesh2: meshes->meshes)
+                for (Mesh &mesh2 : meshes->meshes)
                     if (&mesh1 != &mesh2)
                         physicsWorld.applyMeshCollision(mesh1, mesh2);
                 physicsWorld.applyDrag(mesh1);
@@ -685,13 +737,13 @@ namespace sx
             }
         }
 
-        physicsWorld.deltaTime = (float) glfwGetTime();
+        physicsWorld.deltaTime = (float)glfwGetTime();
 
         if (mainMenu.resetSimulation)
         {
             mainMenu.resetSimulation = false;
             int i = 0;
-            for (auto &mesh: meshes->meshes)
+            for (auto &mesh : meshes->meshes)
             {
                 mesh.position = meshes->initialMeshesPositionsAndVelocities[i].first;
                 mesh.velocity = meshes->initialMeshesPositionsAndVelocities[i].second;
@@ -706,18 +758,18 @@ namespace sx
         {
             windowResized = false;
 
-            mainMenu.menuPos = ImVec2((float) WINDOW_WIDTH - 100.f, 0.f);
+            mainMenu.menuPos = ImVec2((float)WINDOW_WIDTH - 100.f, 0.f);
             mainMenu.menuSize =
-                    ImVec2((float) WINDOW_WIDTH / 10.f, (float) WINDOW_HEIGHT);
+                ImVec2((float)WINDOW_WIDTH / 10.f, (float)WINDOW_HEIGHT);
             mainMenu.objectMenu.menuPos =
-                    ImVec2((float) WINDOW_WIDTH - (float) WINDOW_WIDTH / 4.f, 0);
+                ImVec2((float)WINDOW_WIDTH - (float)WINDOW_WIDTH / 4.f, 0);
             mainMenu.objectMenu.menuSize =
-                    ImVec2((float) WINDOW_WIDTH / 4.f, (float) WINDOW_HEIGHT / 2.f);
+                ImVec2((float)WINDOW_WIDTH / 4.f, (float)WINDOW_HEIGHT / 2.f);
             mainMenu.lightMenu.menuPos =
-                    ImVec2((float) WINDOW_WIDTH - (float) WINDOW_WIDTH / 4.f,
-                           (float) WINDOW_HEIGHT / 2.f);
+                ImVec2((float)WINDOW_WIDTH - (float)WINDOW_WIDTH / 4.f,
+                       (float)WINDOW_HEIGHT / 2.f);
             mainMenu.lightMenu.menuSize =
-                    ImVec2((float) WINDOW_WIDTH / 4.f, (float) WINDOW_HEIGHT / 2.f);
+                ImVec2((float)WINDOW_WIDTH / 4.f, (float)WINDOW_HEIGHT / 2.f);
 
             mainMenu.errorMenu.position = ImVec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 
@@ -765,19 +817,37 @@ namespace sx
             shaders->modelLightningShader.setVec3("camera.position",
                                                   camera.getPosition());
 
-            float surfaceHeight = 0.f;
-            for (auto &rm: meshes->meshes)
+            for (auto &rm : meshes->meshes)
                 if (rm.isReflective)
                 {
                     glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, rm);
                     shaders->lightningShader.setMat4("camera.view", reflectionView);
-                    for (auto &m: meshes->meshes)
+                    for (auto &m : meshes->meshes)
                         if (!m.isReflective)
                             m.render(shaders->lightningShader);
 
-                    shaders->modelBasicShader.setMat4("camera.view", reflectionView);
-                    for (auto &m: models)
-                        m.render(shaders->lightningShader);
+                    shaders->modelLightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m : models)
+                        if (!m.isReflective)
+                            m.render(shaders->modelLightningShader);
+
+                    shaders->skyboxShader.setMat4("view", glm::mat4(glm::mat3(reflectionView)));
+                    skybox->render(shaders->skyboxShader);
+                }
+
+            for (auto &rm : models)
+                if (rm.isReflective)
+                {
+                    glm::mat4 reflectionView = reflection->model_calculateReflectionViewMatrix(camera, rm);
+                    shaders->lightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m : meshes->meshes)
+                        if (!m.isReflective)
+                            m.render(shaders->lightningShader);
+
+                    shaders->modelLightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m : models)
+                        if (!m.isReflective)
+                            m.render(shaders->modelLightningShader);
 
                     shaders->skyboxShader.setMat4("view", glm::mat4(glm::mat3(reflectionView)));
                     skybox->render(shaders->skyboxShader);
@@ -799,23 +869,36 @@ namespace sx
                 lights.lights[i].apply_to_shader(shaders->modelLightningShader, i);
             }
 
-            for (auto &m: meshes->meshes)
+            for (auto &m : meshes->meshes)
                 if (!m.isReflective)
                     m.render(shaders->lightningShader);
 
-            for (auto &m: models)
-                m.render(shaders->modelLightningShader);
+            for (auto &m : models)
+                if (!m.isReflective)
+                    m.render(shaders->modelLightningShader);
 
             if (!useSkybox)
             {
-                for (auto &m: meshes->meshes)
+                for (auto &m : meshes->meshes)
                     if (m.isReflective)
                         reflection->renderSurface(m, camera, projection);
-            } else
-                for (auto &m: meshes->meshes)
+
+                for (auto &m : models)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection);
+            }
+            else
+            {
+                for (auto &m : meshes->meshes)
                     if (m.isReflective)
                         reflection->renderSurface(m, camera, projection, skybox->getTextureID());
-        } else if (mainMenu.usePbrLightShader)
+
+                for (auto &m : models)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection, skybox->getTextureID());
+            }
+        }
+        else if (mainMenu.usePbrLightShader)
         {
             reflection->bind();
 
@@ -826,18 +909,37 @@ namespace sx
             shaders->modelPbrLightningShader.setVec3("camera.position",
                                                      camera.getPosition());
 
-            for (auto &rm: meshes->meshes)
+            for (auto &rm : meshes->meshes)
                 if (rm.isReflective)
                 {
                     glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, rm);
-                    shaders->basicShader.setMat4("camera.view", reflectionView);
-                    for (auto &m: meshes->meshes)
+                    shaders->pbrLightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m : meshes->meshes)
                         if (!m.isReflective)
                             m.render(shaders->pbrLightningShader);
 
-                    shaders->modelBasicShader.setMat4("camera.view", reflectionView);
-                    for (auto &m: models)
-                        m.render(shaders->modelPbrLightningShader);
+                    shaders->modelPbrLightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m : models)
+                        if (!m.isReflective)
+                            m.render(shaders->modelPbrLightningShader);
+
+                    shaders->skyboxShader.setMat4("view", glm::mat4(glm::mat3(reflectionView)));
+                    skybox->render(shaders->skyboxShader);
+                }
+
+            for (auto &rm : models)
+                if (rm.isReflective)
+                {
+                    glm::mat4 reflectionView = reflection->model_calculateReflectionViewMatrix(camera, rm);
+                    shaders->pbrLightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m : meshes->meshes)
+                        if (!m.isReflective)
+                            m.render(shaders->pbrLightningShader);
+
+                    shaders->modelPbrLightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m : models)
+                        if (!m.isReflective)
+                            m.render(shaders->modelPbrLightningShader);
 
                     shaders->skyboxShader.setMat4("view", glm::mat4(glm::mat3(reflectionView)));
                     skybox->render(shaders->skyboxShader);
@@ -861,22 +963,35 @@ namespace sx
                 lights.lights[i].apply_to_shader(shaders->modelPbrLightningShader, i);
             }
 
-            for (auto &m: meshes->meshes)
+            for (auto &m : meshes->meshes)
                 if (!m.isReflective)
                     m.render(shaders->pbrLightningShader);
-            for (auto &m: models)
-                m.render(shaders->modelPbrLightningShader);
+            for (auto &m : models)
+                if (!m.isReflective)
+                    m.render(shaders->modelPbrLightningShader);
 
             if (!useSkybox)
             {
-                for (auto &m: meshes->meshes)
+                for (auto &m : meshes->meshes)
                     if (m.isReflective)
                         reflection->renderSurface(m, camera, projection);
-            } else
-                for (auto &m: meshes->meshes)
+
+                for (auto &m : models)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection);
+            }
+            else
+            {
+                for (auto &m : meshes->meshes)
                     if (m.isReflective)
                         reflection->renderSurface(m, camera, projection, skybox->getTextureID());
-        } else
+
+                for (auto &m : models)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection, skybox->getTextureID());
+            }
+        }
+        else
         {
             reflection->bind();
 
@@ -888,18 +1003,36 @@ namespace sx
             shaders->modelBasicShader.setVec3("camera.position",
                                               camera.getPosition());
 
-            for (auto &rm: meshes->meshes)
+            for (auto &rm : meshes->meshes)
                 if (rm.isReflective)
                 {
                     glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, rm);
                     shaders->basicShader.setMat4("camera.view", reflectionView);
-                    for (auto &m: meshes->meshes)
+                    for (auto &m : meshes->meshes)
                         if (!m.isReflective)
                             m.render(shaders->basicShader);
 
                     shaders->modelBasicShader.setMat4("camera.view", reflectionView);
-                    for (auto &m: models)
+                    for (auto &m : models)
                         m.render(shaders->modelBasicShader);
+
+                    shaders->skyboxShader.setMat4("view", glm::mat4(glm::mat3(reflectionView)));
+                    skybox->render(shaders->skyboxShader);
+                }
+
+            for (auto &rm : models)
+                if (rm.isReflective)
+                {
+                    glm::mat4 reflectionView = reflection->model_calculateReflectionViewMatrix(camera, rm);
+                    shaders->basicShader.setMat4("camera.view", reflectionView);
+                    for (auto &m : meshes->meshes)
+                        if (!m.isReflective)
+                            m.render(shaders->basicShader);
+
+                    shaders->modelBasicShader.setMat4("camera.view", reflectionView);
+                    for (auto &m : models)
+                        if (!m.isReflective)
+                            m.render(shaders->modelBasicShader);
 
                     shaders->skyboxShader.setMat4("view", glm::mat4(glm::mat3(reflectionView)));
                     skybox->render(shaders->skyboxShader);
@@ -915,22 +1048,34 @@ namespace sx
             shaders->modelBasicShader.setMat4("projection", projection);
             shaders->modelBasicShader.setMat4("camera.view", camera.getView());
 
-            for (auto &m: meshes->meshes)
+            for (auto &m : meshes->meshes)
                 if (!m.isReflective)
                     m.render(shaders->basicShader);
 
-            for (auto &m: models)
-                m.render(shaders->modelBasicShader);
+            for (auto &m : models)
+                if (!m.isReflective)
+                    m.render(shaders->modelBasicShader);
 
             if (!useSkybox)
             {
-                for (auto &m: meshes->meshes)
+                for (auto &m : meshes->meshes)
                     if (m.isReflective)
                         reflection->renderSurface(m, camera, projection);
-            } else
-                for (auto &m: meshes->meshes)
+
+                for (auto &m : models)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection);
+            }
+            else
+            {
+                for (auto &m : meshes->meshes)
                     if (m.isReflective)
                         reflection->renderSurface(m, camera, projection, skybox->getTextureID());
+
+                for (auto &m : models)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection, skybox->getTextureID());
+            }
         }
 
         newMenuFrame();
@@ -971,18 +1116,18 @@ namespace sx
         {
             windowResized = false;
 
-            mainMenu.menuPos = ImVec2((float) WINDOW_WIDTH - 100.f, 0.f);
+            mainMenu.menuPos = ImVec2((float)WINDOW_WIDTH - 100.f, 0.f);
             mainMenu.menuSize =
-                    ImVec2((float) WINDOW_WIDTH / 10.f, (float) WINDOW_HEIGHT);
+                ImVec2((float)WINDOW_WIDTH / 10.f, (float)WINDOW_HEIGHT);
             mainMenu.objectMenu.menuPos =
-                    ImVec2((float) WINDOW_WIDTH - (float) WINDOW_WIDTH / 4.f, 0);
+                ImVec2((float)WINDOW_WIDTH - (float)WINDOW_WIDTH / 4.f, 0);
             mainMenu.objectMenu.menuSize =
-                    ImVec2((float) WINDOW_WIDTH / 4.f, (float) WINDOW_HEIGHT / 2.f);
+                ImVec2((float)WINDOW_WIDTH / 4.f, (float)WINDOW_HEIGHT / 2.f);
             mainMenu.lightMenu.menuPos =
-                    ImVec2((float) WINDOW_WIDTH - (float) WINDOW_WIDTH / 4.f,
-                           (float) WINDOW_HEIGHT / 2.f);
+                ImVec2((float)WINDOW_WIDTH - (float)WINDOW_WIDTH / 4.f,
+                       (float)WINDOW_HEIGHT / 2.f);
             mainMenu.lightMenu.menuSize =
-                    ImVec2((float) WINDOW_WIDTH / 4.f, (float) WINDOW_HEIGHT / 2.f);
+                ImVec2((float)WINDOW_WIDTH / 4.f, (float)WINDOW_HEIGHT / 2.f);
 
             mainMenu.errorMenu.position = ImVec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 
@@ -1012,10 +1157,10 @@ namespace sx
 
         shadow->shadowMode(true, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-        for (Mesh &mesh: meshes->meshes)
+        for (Mesh &mesh : meshes->meshes)
             shadow->apply_to_mesh(mesh);
 
-        for (Model &model: models)
+        for (Model &model : models)
             shadow->apply_to_model(model);
 
         shadow->shadowMode(false, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -1054,18 +1199,36 @@ namespace sx
             shaders->modelLightningShader.setVec3("camera.position",
                                                   camera.getPosition());
 
-            for (auto &rm: meshes->meshes)
+            for (auto &rm : meshes->meshes)
                 if (rm.isReflective)
                 {
                     glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, rm);
                     shaders->lightningShader.setMat4("camera.view", reflectionView);
-                    for (auto &m: meshes->meshes)
+                    for (auto &m : meshes->meshes)
                         if (!m.isReflective)
                             m.render(shaders->lightningShader);
 
                     shaders->modelLightningShader.setMat4("camera.view", reflectionView);
-                    for (auto &m: models)
+                    for (auto &m : models)
                         m.render(shaders->modelLightningShader);
+                }
+
+            for (auto &rm : models)
+                if (rm.isReflective)
+                {
+                    glm::mat4 reflectionView = reflection->model_calculateReflectionViewMatrix(camera, rm);
+                    shaders->lightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m : meshes->meshes)
+                        if (!m.isReflective)
+                            m.render(shaders->lightningShader);
+
+                    shaders->modelLightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m : models)
+                        if (!m.isReflective)
+                            m.render(shaders->modelLightningShader);
+
+                    shaders->skyboxShader.setMat4("view", glm::mat4(glm::mat3(reflectionView)));
+                    skybox->render(shaders->skyboxShader);
                 }
 
             reflection->unbind();
@@ -1085,22 +1248,35 @@ namespace sx
                 lights.lights[i].apply_to_shader(shaders->modelLightningShader, i);
             }
 
-            for (auto &m: meshes->meshes)
+            for (auto &m : meshes->meshes)
                 if (!m.isReflective)
                     m.render(shaders->lightningShader);
-            for (auto &m: models)
-                m.render(shaders->modelLightningShader);
+            for (auto &m : models)
+                if (!m.isReflective)
+                    m.render(shaders->modelLightningShader);
 
             if (!useSkybox)
             {
-                for (auto &m: meshes->meshes)
+                for (auto &m : meshes->meshes)
                     if (m.isReflective)
                         reflection->renderSurface(m, camera, projection);
-            } else
-                for (auto &m: meshes->meshes)
+
+                for (auto &m : models)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection);
+            }
+            else
+            {
+                for (auto &m : meshes->meshes)
                     if (m.isReflective)
                         reflection->renderSurface(m, camera, projection, skybox->getTextureID());
-        } else if (mainMenu.usePbrLightShader)
+
+                for (auto &m : models)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection, skybox->getTextureID());
+            }
+        }
+        else if (mainMenu.usePbrLightShader)
         {
             reflection->bind();
 
@@ -1111,18 +1287,36 @@ namespace sx
             shaders->modelPbrLightningShader.setVec3("camera.position",
                                                      camera.getPosition());
 
-            for (auto &rm: meshes->meshes)
+            for (auto &rm : meshes->meshes)
                 if (rm.isReflective)
                 {
                     glm::mat4 reflectionView = reflection->calculateReflectionViewMatrix(camera, rm);
                     shaders->lightningShader.setMat4("camera.view", reflectionView);
-                    for (auto &m: meshes->meshes)
+                    for (auto &m : meshes->meshes)
                         if (!m.isReflective)
                             m.render(shaders->pbrLightningShader);
 
                     shaders->modelPbrLightningShader.setMat4("camera.view", reflectionView);
-                    for (auto &m: models)
+                    for (auto &m : models)
                         m.render(shaders->modelPbrLightningShader);
+                }
+
+            for (auto &rm : models)
+                if (rm.isReflective)
+                {
+                    glm::mat4 reflectionView = reflection->model_calculateReflectionViewMatrix(camera, rm);
+                    shaders->pbrLightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m : meshes->meshes)
+                        if (!m.isReflective)
+                            m.render(shaders->pbrLightningShader);
+
+                    shaders->modelPbrLightningShader.setMat4("camera.view", reflectionView);
+                    for (auto &m : models)
+                        if (!m.isReflective)
+                            m.render(shaders->modelPbrLightningShader);
+
+                    shaders->skyboxShader.setMat4("view", glm::mat4(glm::mat3(reflectionView)));
+                    skybox->render(shaders->skyboxShader);
                 }
 
             reflection->unbind();
@@ -1143,21 +1337,33 @@ namespace sx
                 lights.lights[i].apply_to_shader(shaders->modelPbrLightningShader, i);
             }
 
-            for (auto &m: meshes->meshes)
+            for (auto &m : meshes->meshes)
                 if (!m.isReflective)
                     m.render(shaders->pbrLightningShader);
-            for (auto &m: models)
-                m.render(shaders->modelPbrLightningShader);
+            for (auto &m : models)
+                if (!m.isReflective)
+                    m.render(shaders->modelPbrLightningShader);
 
             if (!useSkybox)
             {
-                for (auto &m: meshes->meshes)
+                for (auto &m : meshes->meshes)
                     if (m.isReflective)
                         reflection->renderSurface(m, camera, projection);
-            } else
-                for (auto &m: meshes->meshes)
+
+                for (auto &m : models)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection);
+            }
+            else
+            {
+                for (auto &m : meshes->meshes)
                     if (m.isReflective)
                         reflection->renderSurface(m, camera, projection, skybox->getTextureID());
+
+                for (auto &m : models)
+                    if (m.isReflective)
+                        reflection->renderSurface(m, camera, projection, skybox->getTextureID());
+            }
         }
 
         newMenuFrame();
@@ -1193,8 +1399,8 @@ namespace sx
             double newMouseX, newMousey;
             glfwGetCursorPos(window, &newMouseX, &newMousey);
 
-            float xOffset = (float) newMouseX - (float) mouseX;
-            float yOffset = (float) newMousey - (float) mouseY;
+            float xOffset = (float)newMouseX - (float)mouseX;
+            float yOffset = (float)newMousey - (float)mouseY;
 
             xOffset *= 0.1f;
             yOffset *= 0.1f;
@@ -1211,7 +1417,8 @@ namespace sx
                     meshes->meshes[mainMenu.selectedMeshIndex].position.x += xOffset * TRANSLATION_SENSITIVITY;
                 else
                     meshes->meshes[mainMenu.selectedMeshIndex].position.z += xOffset * TRANSLATION_SENSITIVITY;
-            } else if (mainMenu.objectMenu.scaleObjectWithMouse)
+            }
+            else if (mainMenu.objectMenu.scaleObjectWithMouse)
             {
                 meshes->meshes[mainMenu.selectedMeshIndex].scale.y += yOffset * SCALE_SENSITIVITY;
 
@@ -1219,7 +1426,8 @@ namespace sx
                     meshes->meshes[mainMenu.selectedMeshIndex].scale.x += xOffset * SCALE_SENSITIVITY;
                 else
                     meshes->meshes[mainMenu.selectedMeshIndex].scale.z += xOffset * SCALE_SENSITIVITY;
-            } else if (mainMenu.objectMenu.rotateObjectWithMouse)
+            }
+            else if (mainMenu.objectMenu.rotateObjectWithMouse)
             {
                 meshes->meshes[mainMenu.selectedMeshIndex].angles.y += xOffset * 10.f;
 
@@ -1238,8 +1446,8 @@ namespace sx
             double newMouseX, newMousey;
             glfwGetCursorPos(window, &newMouseX, &newMousey);
 
-            float xOffset = (float) newMouseX - (float) mouseX;
-            float yOffset = (float) newMousey - (float) mouseY;
+            float xOffset = (float)newMouseX - (float)mouseX;
+            float yOffset = (float)newMousey - (float)mouseY;
 
             xOffset *= 0.01f;
             yOffset *= 0.01f;
@@ -1252,7 +1460,8 @@ namespace sx
                     models[mainMenu.selectedModelIndex].position.x += xOffset;
                 else
                     models[mainMenu.selectedModelIndex].position.z += xOffset;
-            } else if (mainMenu.objectMenu.scaleObjectWithMouse)
+            }
+            else if (mainMenu.objectMenu.scaleObjectWithMouse)
             {
                 models[mainMenu.selectedModelIndex].scale.y += -yOffset;
 
@@ -1260,7 +1469,8 @@ namespace sx
                     models[mainMenu.selectedModelIndex].scale.x += xOffset;
                 else
                     models[mainMenu.selectedModelIndex].scale.z += xOffset;
-            } else if (mainMenu.objectMenu.rotateObjectWithMouse)
+            }
+            else if (mainMenu.objectMenu.rotateObjectWithMouse)
             {
                 models[mainMenu.selectedModelIndex].angles.y += xOffset * 100.f;
 
@@ -1276,14 +1486,13 @@ namespace sx
     {
         leftMouseButtonPressedThisFrame = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
 
-        if (leftMouseButtonPressedThisFrame && !leftMouseButtonPressedBeforeThisFrame && (
-                !meshes->meshes.empty() || !models.empty()))
+        if (leftMouseButtonPressedThisFrame && !leftMouseButtonPressedBeforeThisFrame && (!meshes->meshes.empty() || !models.empty()))
         {
             const auto &view = camera.getView();
             auto viewport = glm::vec4(0.f, 0.f, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-            auto winCoordNear = glm::vec3((float) mouseX, (float) WINDOW_HEIGHT - (float) mouseY, 0.f);
-            auto winCoordFar = glm::vec3((float) mouseX, (float) WINDOW_HEIGHT - (float) mouseY, 1.f);
+            auto winCoordNear = glm::vec3((float)mouseX, (float)WINDOW_HEIGHT - (float)mouseY, 0.f);
+            auto winCoordFar = glm::vec3((float)mouseX, (float)WINDOW_HEIGHT - (float)mouseY, 1.f);
 
             auto worldCoordNear = glm::unProject(winCoordNear, view, projection, viewport);
             auto worldCoordFar = glm::unProject(winCoordFar, view, projection, viewport);
@@ -1292,12 +1501,11 @@ namespace sx
             glm::vec3 rayOrigin = worldCoordNear;
 
             int i = 0;
-            for (auto &m: meshes->meshes)
+            for (auto &m : meshes->meshes)
             {
                 const glm::mat4 &model = m.getModel();
 
-                if (m.type == MeshType::CONE || m.type == MeshType::CYLINDER || m.type == MeshType::SPHERE || m.type ==
-                    MeshType::TORUS)
+                if (m.type == MeshType::CONE || m.type == MeshType::CYLINDER || m.type == MeshType::SPHERE || m.type == MeshType::TORUS)
                 {
                     auto sphereCenterWorld = glm::vec3(model * glm::vec4(m.boundingSphereCenter, 1.f));
 
@@ -1313,7 +1521,8 @@ namespace sx
                         mainMenu.selectedMeshIndicator[i] = 1;
                         return;
                     }
-                } else
+                }
+                else
                 {
                     const auto &vertices = m.getVertices();
                     const auto &indices = m.getIndices();
@@ -1349,7 +1558,7 @@ namespace sx
 
             i = 0;
 
-            for (auto &m: models)
+            for (auto &m : models)
             {
                 const auto &model = m.getModel();
 
@@ -1383,7 +1592,7 @@ namespace sx
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         window =
-                glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "sBlend", nullptr, nullptr);
+            glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "sBlend", nullptr, nullptr);
 
         if (!window)
             throw std::runtime_error("Window init failed");
@@ -1392,7 +1601,7 @@ namespace sx
 
         glfwMakeContextCurrent(window);
 
-        if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
+        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
             throw std::runtime_error("GLAD init failed");
 
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
@@ -1429,20 +1638,20 @@ namespace sx
         shadow->lightProjection = glm::ortho(-5.f, 5.f, -5.f, 5.f, 0.1f, 20.f);
 
         projection =
-                glm::perspective(glm::radians(fov),
-                                 (float) WINDOW_WIDTH / (float) WINDOW_HEIGHT, 0.1f, 100.f);
+            glm::perspective(glm::radians(fov),
+                             (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.f);
 
-        mainMenu.menuPos = ImVec2((float) WINDOW_WIDTH - 100.f, 0.f);
-        mainMenu.menuSize = ImVec2((float) WINDOW_WIDTH / 10.f, (float) WINDOW_HEIGHT);
+        mainMenu.menuPos = ImVec2((float)WINDOW_WIDTH - 100.f, 0.f);
+        mainMenu.menuSize = ImVec2((float)WINDOW_WIDTH / 10.f, (float)WINDOW_HEIGHT);
         mainMenu.objectMenu.menuPos =
-                ImVec2((float) WINDOW_WIDTH - (float) WINDOW_WIDTH / 4.f, 0);
+            ImVec2((float)WINDOW_WIDTH - (float)WINDOW_WIDTH / 4.f, 0);
         mainMenu.objectMenu.menuSize =
-                ImVec2((float) WINDOW_WIDTH / 4.f, (float) WINDOW_HEIGHT / 2.f);
+            ImVec2((float)WINDOW_WIDTH / 4.f, (float)WINDOW_HEIGHT / 2.f);
         mainMenu.lightMenu.menuPos =
-                ImVec2((float) WINDOW_WIDTH - (float) WINDOW_WIDTH / 4.f,
-                       (float) WINDOW_HEIGHT / 2.f);
+            ImVec2((float)WINDOW_WIDTH - (float)WINDOW_WIDTH / 4.f,
+                   (float)WINDOW_HEIGHT / 2.f);
         mainMenu.lightMenu.menuSize =
-                ImVec2((float) WINDOW_WIDTH / 4.f, (float) WINDOW_HEIGHT / 2.f);
+            ImVec2((float)WINDOW_WIDTH / 4.f, (float)WINDOW_HEIGHT / 2.f);
         renderLightMenu = renderObjectMenu = false;
 
         mainMenu.errorMenu.position = ImVec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
@@ -1467,7 +1676,7 @@ namespace sx
         gridLines->position = glm::vec3(0.f, -0.8f, 0.f);
 
         physicsWorld.gravity = glm::vec3(0.f, -9.81f, 0.f);
-        physicsWorld.deltaTime = (float) glfwGetTime();
+        physicsWorld.deltaTime = (float)glfwGetTime();
         physicsWorld.setGrid(*grid);
 
         std::vector<Vertex>().swap(vertices);
@@ -1538,7 +1747,7 @@ namespace sx
 
         delete application->shaders;
 
-        for (auto &m: application->meshes->meshes)
+        for (auto &m : application->meshes->meshes)
         {
             glDeleteBuffers(1, &m.vbo);
             glDeleteBuffers(1, &m.ebo);
@@ -1546,7 +1755,7 @@ namespace sx
             glDeleteTextures(1, &m.texture);
         }
 
-        for (auto &m: application->models)
+        for (auto &m : application->models)
         {
             glDeleteBuffers(1, &m.vbo);
             glDeleteBuffers(1, &m.ebo);

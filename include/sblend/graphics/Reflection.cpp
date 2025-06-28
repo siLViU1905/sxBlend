@@ -46,20 +46,11 @@ namespace sx
 
     glm::mat4 Reflection::calculateReflectionViewMatrix(const Camera &camera, const Mesh& mesh)
     {
-        glm::mat4 reflectionView;
+        if (mesh.useFlatReflection == 1)
 
-        if (mesh.type == MeshType::PLANE || mesh.type == MeshType::CUBE)
-        {
-            reflectionView = calculateFlatReflectionViewMatrix(camera, mesh);
-            useFlat = 1;
-        }
+           return calculateFlatReflectionViewMatrix(camera, mesh);
         else
-        {
-            reflectionView = calculateCurvedReflectionViewMatrix(camera, mesh);
-           useFlat = 0;
-        }
-
-        return reflectionView;
+            return calculateCurvedReflectionViewMatrix(camera, mesh);
     }
 
     glm::mat4 Reflection::calculateFlatReflectionViewMatrix(const Camera &camera, const Mesh &mesh)
@@ -85,10 +76,39 @@ namespace sx
                            camera.getUp());
     }
 
+    glm::mat4 Reflection::model_calculateFlatReflectionViewMatrix(const Camera &camera, const Model &model)
+    {
+        glm::vec3 reflectionCamPos = camera.getPosition();
+        reflectionCamPos.y = 2 * model.position.y - reflectionCamPos.y;
+
+
+        return glm::lookAt(reflectionCamPos,
+                           reflectionCamPos + camera.getFront(),
+                           camera.getUp());
+    }
+
+    glm::mat4 Reflection::model_calculateCurvedReflectionViewMatrix(const Camera &camera, const Model &model)
+    {
+        auto camToModel = camera.getPosition() - model.position;
+        float distance = glm::length(camToModel);
+        float radius = (model.scale.x + model.scale.y + model.scale.z) / 3.f;
+        auto reflectionCamPos = model.position + camToModel * (radius * radius / (distance * distance));
+        return glm::lookAt(reflectionCamPos,
+                           reflectionCamPos + camera.getFront(),
+                           camera.getUp());
+    }
+
+    glm::mat4 Reflection::model_calculateReflectionViewMatrix(const Camera &camera, const Model &model)
+    {
+        if (model.useFlatReflection == 1)
+            return model_calculateFlatReflectionViewMatrix(camera, model);
+        else
+            return model_calculateCurvedReflectionViewMatrix(camera, model);
+    }
+
     void Reflection::renderSurface(Mesh &surfaceMesh, const Camera &mainCamera, const glm::mat4 &mainProjection,
                                    int skyboxTex)
     {
-
         auto reflectionView = calculateReflectionViewMatrix(mainCamera, surfaceMesh);
 
         reflectionShader->use();
@@ -96,7 +116,7 @@ namespace sx
         reflectionShader->setMat4("camera.view", mainCamera.getView());
         reflectionShader->setMat4("projection", mainProjection);
         reflectionShader->setMat4("reflectionViewMatrix", reflectionView);
-        reflectionShader->setInt("useFlatReflection", useFlat);
+        reflectionShader->setInt("useFlatReflection", surfaceMesh.useFlatReflection);
 
         reflectionShader->setInt("reflectionTexture", 0);
         if (skyboxTex != -1)
@@ -112,6 +132,34 @@ namespace sx
         glBindTexture(GL_TEXTURE_2D, reflectionTexture);
 
         surfaceMesh.render(*reflectionShader);
+    }
+
+    void Reflection::renderSurface(Model &surfaceModel, const Camera &mainCamera, const glm::mat4 &mainProjection,
+        int skyboxTex)
+    {
+        auto reflectionView = model_calculateReflectionViewMatrix(mainCamera, surfaceModel);
+
+        reflectionShader->use();
+
+        reflectionShader->setMat4("camera.view", mainCamera.getView());
+        reflectionShader->setMat4("projection", mainProjection);
+        reflectionShader->setMat4("reflectionViewMatrix", reflectionView);
+        reflectionShader->setInt("useFlatReflection", surfaceModel.useFlatReflection);
+
+        reflectionShader->setInt("reflectionTexture", 0);
+        if (skyboxTex != -1)
+        {
+            reflectionShader->setInt("useSkybox", 1);
+            reflectionShader->setInt("skybox", 1);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
+        } else
+            reflectionShader->setInt("useSkybox", 0);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, reflectionTexture);
+
+        surfaceModel.render(*reflectionShader);
     }
 
     void Reflection::updateFrameBufferSize(int newWidth, int newHeight)

@@ -57,7 +57,7 @@ namespace sx
         }
 
         std::string simulationText =
-            simulationState ? "Stop Simulation" : "Start Simulation";
+                simulationState ? "Stop Simulation" : "Start Simulation";
 
         if (ImGui::Button(simulationText.c_str()))
         {
@@ -84,9 +84,9 @@ namespace sx
                 selectedMesh = MeshType::PLANE;
                 meshBtnPressed = false;
                 existentMeshes.emplace_back(
-                    "Plane " + std::to_string(meshTypeCounter[(int)selectedMesh]));
+                    "Plane " + std::to_string(meshTypeCounter[(int) selectedMesh]));
                 selectedMeshIndicator.emplace_back(0);
-                ++meshTypeCounter[(int)selectedMesh];
+                ++meshTypeCounter[(int) selectedMesh];
             }
 
             if (ImGui::Button("Circle"))
@@ -100,9 +100,9 @@ namespace sx
                 selectedMesh = MeshType::CUBE;
                 meshBtnPressed = false;
                 existentMeshes.emplace_back(
-                    "Cube " + std::to_string(meshTypeCounter[(int)selectedMesh]));
+                    "Cube " + std::to_string(meshTypeCounter[(int) selectedMesh]));
                 selectedMeshIndicator.emplace_back(0);
-                ++meshTypeCounter[(int)selectedMesh];
+                ++meshTypeCounter[(int) selectedMesh];
             }
 
             if (ImGui::Button("Cone"))
@@ -200,9 +200,9 @@ namespace sx
                 selectedLight = LightType::POINT;
                 lightBtnPressed = false;
                 existentLights.emplace_back(
-                    "Point " + std::to_string(lightTypeCounter[(int)selectedLight]));
+                    "Point " + std::to_string(lightTypeCounter[(int) selectedLight]));
                 selectedLightIndicator.emplace_back(0);
-                ++lightTypeCounter[(int)selectedLight];
+                ++lightTypeCounter[(int) selectedLight];
             }
 
             if (ImGui::Button("Dir."))
@@ -210,9 +210,9 @@ namespace sx
                 selectedLight = LightType::DIRECTIONAL;
                 lightBtnPressed = false;
                 existentLights.emplace_back(
-                    "Directional " + std::to_string(lightTypeCounter[(int)selectedLight]));
+                    "Directional " + std::to_string(lightTypeCounter[(int) selectedLight]));
                 selectedLightIndicator.emplace_back(0);
-                ++lightTypeCounter[(int)selectedLight];
+                ++lightTypeCounter[(int) selectedLight];
             }
 
             if (ImGui::Button("Spot"))
@@ -220,9 +220,9 @@ namespace sx
                 selectedLight = LightType::SPOT;
                 lightBtnPressed = false;
                 existentLights.emplace_back(
-                    "Spot " + std::to_string(lightTypeCounter[(int)selectedLight]));
+                    "Spot " + std::to_string(lightTypeCounter[(int) selectedLight]));
                 selectedLightIndicator.emplace_back(0);
-                ++lightTypeCounter[(int)selectedLight];
+                ++lightTypeCounter[(int) selectedLight];
             }
 
             if (ImGui::Button("PBR"))
@@ -230,9 +230,9 @@ namespace sx
                 selectedLight = LightType::PBR;
                 lightBtnPressed = false;
                 existentLights.emplace_back(
-                    "PBR " + std::to_string(lightTypeCounter[(int)selectedLight]));
+                    "PBR " + std::to_string(lightTypeCounter[(int) selectedLight]));
                 selectedLightIndicator.emplace_back(0);
-                ++lightTypeCounter[(int)selectedLight];
+                ++lightTypeCounter[(int) selectedLight];
             }
 
             ImGui::End();
@@ -260,7 +260,7 @@ namespace sx
                 deleteObject = false;
 
                 deleteObject =
-                    glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_DELETE) == GLFW_PRESS;
+                        glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_DELETE) == GLFW_PRESS;
 
                 if (ImGui::Button("Set texture"))
                 {
@@ -270,11 +270,6 @@ namespace sx
 
                 if (ImGui::Button("Delete"))
                     deleteObject = true;
-
-                setReflective = false;
-
-                if (ImGui::Button("Make reflective"))
-                    setReflective = true;
             }
         }
 
@@ -282,7 +277,7 @@ namespace sx
 
         for (int i = 0; i < existentModels.size(); ++i)
         {
-            bool *b = (bool *)&selectedModelIndicator[i];
+            bool *b = (bool *) &selectedModelIndicator[i];
             ImGui::Checkbox(existentModels[i].c_str(), b);
             if (*b)
             {
@@ -291,7 +286,7 @@ namespace sx
                 deleteModel = false;
 
                 deleteModel =
-                    glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_DELETE) == GLFW_PRESS;
+                        glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_DELETE) == GLFW_PRESS;
 
                 if (ImGui::Button("Delete"))
                     deleteModel = true;
@@ -309,7 +304,7 @@ namespace sx
 
         for (int i = 0; i < existentLights.size(); ++i)
         {
-            bool *b = (bool *)&selectedLightIndicator[i];
+            bool *b = (bool *) &selectedLightIndicator[i];
             ImGui::Checkbox(existentLights[i].c_str(), b);
             if (*b)
             {
@@ -318,7 +313,7 @@ namespace sx
                 deleteLight = false;
 
                 deleteLight =
-                    glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_DELETE) == GLFW_PRESS;
+                        glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_DELETE) == GLFW_PRESS;
 
                 if (ImGui::Button("Delete"))
                     deleteLight = true;
@@ -337,6 +332,21 @@ namespace sx
                 renderSaveMenu = false;
             }
 
+            ImGui::End();
+        }
+
+        chosenMeshForBoolean = -1;
+
+        if (objectMenu.renderMeshChoiceMenu)
+        {
+            ImGui::Begin("Choose a mesh");
+            for (int i = 0;i<existentMeshes.size();++i)
+                if (i!=selectedMeshIndex)
+                    if (ImGui::Button(existentMeshes[i].c_str()))
+                    {
+                        chosenMeshForBoolean = i;
+                        break;
+                    }
             ImGui::End();
         }
 
@@ -381,12 +391,54 @@ namespace sx
         if (ImGui::CollapsingHeader("Material", windowFlags))
         {
             ImGui::ColorPicker3("Color", color);
+        }
+
+        ImGui::SetNextItemOpen(false, ImGuiCond_Once);
+
+        if (ImGui::CollapsingHeader("PBR", windowFlags))
+        {
             ImGui::SliderFloat("Metallic", metallic, 0.f, 1.f);
             ImGui::InputFloat("Met", metallic);
             ImGui::SliderFloat("Roughness", roughness, 0.f, 1.f);
             ImGui::InputFloat("Rou", roughness);
             ImGui::SliderFloat("AO", ao, 0.f, 1.f);
             ImGui::InputFloat("Ao", ao);
+        }
+
+        ImGui::SetNextItemOpen(false, ImGuiCond_Once);
+
+        if (ImGui::CollapsingHeader("Reflection", windowFlags))
+        {
+            ImGui::Checkbox("Reflective", reflective);
+
+            if (ImGui::Button("Use flat reflection"))
+                *flatReflection = 1;
+
+            if (ImGui::Button("Use curved reflection"))
+                *flatReflection = 0;
+        }
+
+        ImGui::SetNextItemOpen(false, ImGuiCond_Once);
+
+        if (ImGui::CollapsingHeader("Boolean", windowFlags))
+        {
+            if (ImGui::Button("Union"))
+            {
+                renderMeshChoiceMenu = !renderMeshChoiceMenu;
+                booleanOperation = MeshBooleanOperation::UNION;
+            }
+
+            if (ImGui::Button("Intersection"))
+            {
+                renderMeshChoiceMenu = !renderMeshChoiceMenu;
+                booleanOperation = MeshBooleanOperation::INTERSECT;
+            }
+
+            if (ImGui::Button("Subtraction"))
+            {
+                renderMeshChoiceMenu = !renderMeshChoiceMenu;
+                booleanOperation = MeshBooleanOperation::SUBTRACT;
+            }
         }
 
         ImGui::End();
@@ -433,7 +485,6 @@ namespace sx
 
         if (ImGui::CollapsingHeader("Transformations"))
         {
-
             ImGui::SliderFloat3("Position", position, -10.f, 10.f);
             ImGui::InputFloat3("Pos", position);
         }
@@ -468,11 +519,11 @@ namespace sx
             ImGui::InputFloat3("Dir", direction);
         }
 
-         ImGui::SetNextItemOpen(false, ImGuiCond_Once);
+        ImGui::SetNextItemOpen(false, ImGuiCond_Once);
 
         if (ImGui::CollapsingHeader("Spot"))
         {
-            if (*cutOff > * outerCutOff)
+            if (*cutOff > *outerCutOff)
                 *cutOff -= 1.f;
             ImGui::SliderFloat("Cutoff", cutOff, 0.f, *outerCutOff - 1.f);
             ImGui::InputFloat("Cut", cutOff);

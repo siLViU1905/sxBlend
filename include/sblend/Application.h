@@ -16,6 +16,7 @@
 #include "physics/PhysicsWorld.h"
 #include  "graphics/Reflection.h"
 #include "graphics/Skybox.h"
+#include "MeshBoolean.h"
 
 namespace sx
 {

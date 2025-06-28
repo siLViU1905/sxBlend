@@ -4,19 +4,18 @@
 
 int main()
 {
-  
-
-
-    sx::Application* application;
+    sx::Application *application;
+    bool appGoneWrong = false;
     try
     {
-       application = sx::Application::getApplication();
-       application->run();
-    }
-    catch (std::exception &e)
+        application = sx::Application::getApplication();
+        application->run();
+    } catch (std::exception &e)
     {
         std::cerr << e.what() << '\n';
+        appGoneWrong = true;
     }
-    
-   sx::Application::terminateApplication(application);
+
+    if (!appGoneWrong)
+        sx::Application::terminateApplication(application);
 }

@@ -88,6 +88,8 @@ public:
 
     bool isReflective;
 
+    int useFlatReflection;
+
     uint32_t vbo, vao, ebo;
     uint32_t texture = 0;
 

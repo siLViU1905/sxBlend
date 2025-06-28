@@ -9,6 +9,7 @@
 #include <vector>
 #include "graphics/Light.h"
 #include "graphics/Mesh.h"
+#include "MeshBoolean.h"
 
 namespace sx
 {
@@ -50,6 +51,11 @@ namespace sx
         float *metallic;
         float *roughness;
         float *ao;
+        bool *reflective;
+        int *flatReflection;
+
+        bool renderMeshChoiceMenu = false;
+        MeshBooleanOperation booleanOperation;
 
         ImGuiWindowFlags windowFlags;
 
@@ -157,8 +163,6 @@ namespace sx
 
         bool deleteModel;
 
-        bool setReflective;
-
         bool setSkybox = false;
 
         bool newSphere, newCircle, newTorus, newCone = false, newCylinder = false;
@@ -192,6 +196,8 @@ namespace sx
         bool resetSimulation = false;
 
         bool savePositionAndVelocity = false;
+
+        int chosenMeshForBoolean;
 
         LoadRequest loadRequest;
 

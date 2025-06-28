@@ -120,6 +120,10 @@ public:
   glm::vec3 boundingSphereCenter;
   float boundingSphereRadius;
 
+  bool isReflective = false;
+
+  int useFlatReflection = 1;
+
   void calculateBoundingSphere();
 
   void render(Shader &shader);

@@ -176,18 +176,18 @@ const glm::mat4 &Model::getModel()
 
 void Model::calculateBoundingSphere()
 {
-     glm::vec3 center(0.f);
+    glm::vec3 center(0.f);
 
-    for (const auto& vertex:allVertices)
+    for (const auto &vertex: allVertices)
         center += vertex.position;
-    boundingSphereCenter = center / (float)allVertices.size();
+    boundingSphereCenter = center / (float) allVertices.size();
 
     float maxRadius = 0.f;
 
-    for (const auto& vertex:allVertices)
+    for (const auto &vertex: allVertices)
     {
         float dist = glm::length2(vertex.position - boundingSphereCenter);
-        if (dist>maxRadius)
+        if (dist > maxRadius)
             maxRadius = dist;
     }
 
@@ -209,6 +209,8 @@ void Model::getProperties(std::ostringstream &stream)
     stream << metallic << '\n';
     stream << roughness << '\n';
     stream << ao << '\n';
+    stream << isReflective << '\n';
+    stream << useFlatReflection << '\n';
 }
 
 bool Texture::load(const char *filepath, const std::string &type)
@@ -540,61 +542,66 @@ void Model::render(Shader &shader)
     model = glm::scale(model, scale);
 
     shader.setMat4("model", model);
+
     shader.setVec3("aColor", color);
+    shader.setFloat("metallic", metallic);
+    shader.setFloat("roughness", roughness);
+    shader.setFloat("ao", ao);
 
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, materialUBO);
+        glBindBufferBase(GL_UNIFORM_BUFFER, 0, materialUBO);
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, diffuseTexArray);
-    shader.setInt("diffuseTexArray", 1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, diffuseTexArray);
+        shader.setInt("diffuseTexArray", 1);
 
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, specularTexArray);
-    shader.setInt("specularTexArray", 2);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, specularTexArray);
+        shader.setInt("specularTexArray", 2);
 
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, normalTexArray);
-    shader.setInt("normalTexArray", 3);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, normalTexArray);
+        shader.setInt("normalTexArray", 3);
 
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, heightTexArray);
-    shader.setInt("heightTexArray", 4);
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, heightTexArray);
+        shader.setInt("heightTexArray", 4);
 
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, emissiveTexArray);
-    shader.setInt("emissiveTexArray", 5);
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, emissiveTexArray);
+        shader.setInt("emissiveTexArray", 5);
 
-    glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, ambientOcclusionTexArray);
-    shader.setInt("ambientOcclusionTexArray", 6);
+        glActiveTexture(GL_TEXTURE6);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, ambientOcclusionTexArray);
+        shader.setInt("ambientOcclusionTexArray", 6);
 
-    glActiveTexture(GL_TEXTURE7);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, metalnessTexArray);
-    shader.setInt("metalnessTexArray", 7);
+        glActiveTexture(GL_TEXTURE7);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, metalnessTexArray);
+        shader.setInt("metalnessTexArray", 7);
 
-    glActiveTexture(GL_TEXTURE8);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, roughnessTexArray);
-    shader.setInt("roughnessTexArray", 8);
+        glActiveTexture(GL_TEXTURE8);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, roughnessTexArray);
+        shader.setInt("roughnessTexArray", 8);
 
-    glActiveTexture(GL_TEXTURE9);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, opacityTexArray);
-    shader.setInt("opacityTexArray", 9);
+        glActiveTexture(GL_TEXTURE9);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, opacityTexArray);
+        shader.setInt("opacityTexArray", 9);
 
-    glActiveTexture(GL_TEXTURE10);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, shininessTexArray);
-    shader.setInt("shininessTexArray", 10);
+        glActiveTexture(GL_TEXTURE10);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, shininessTexArray);
+        shader.setInt("shininessTexArray", 10);
 
-    glBindVertexArray(vao);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
+        glBindVertexArray(vao);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
+
 
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT,
                                 (void *) 0, renderCommands.size(), 0);
 
-    for (int i = 0; i < 10; ++i)
-    {
-        glActiveTexture(GL_TEXTURE1 + i);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-    }
+        for (int i = 0; i < 10; ++i)
+        {
+            glActiveTexture(GL_TEXTURE1 + i);
+            glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+        }
 
     glBindVertexArray(0);
 }

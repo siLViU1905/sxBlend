@@ -8,8 +8,9 @@
 std::unordered_map<MeshType, std::string> Mesh::MeshTypesMap;
 std::unordered_map<std::string, MeshType> Mesh::MeshStringMap;
 
-Mesh::Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_indices, GLenum renderMode) : vertices(_vertices), indices(_indices),
-                                                                                                             renderMode(renderMode)
+Mesh::Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_indices,
+           GLenum renderMode) : vertices(_vertices), indices(_indices),
+                                renderMode(renderMode)
 {
     position = glm::vec3(0.f, 1.f, 0.f);
     velocity = angles = glm::vec3(0.f);
@@ -34,27 +35,28 @@ Mesh::Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_i
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) 0);
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, normal));
 
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, texCoords));
 
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, tangent));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, tangent));
 
     glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, bitangent));
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, bitangent));
 
     glBindVertexArray(0);
 
     calculateBounidngSphere();
 }
 
-Mesh::Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_indices, const std::vector<Texture> &_textures) : vertices(_vertices), indices(_indices),
-                                                                                                                                 textures(_textures)
+Mesh::Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_indices,
+           const std::vector<Texture> &_textures) : vertices(_vertices), indices(_indices),
+                                                    textures(_textures)
 {
     position = glm::vec3(0.f, 1.f, 0.f);
     velocity = angles = glm::vec3(0.f);
@@ -79,26 +81,25 @@ Mesh::Mesh(const std::vector<Vertex> &_vertices, const std::vector<uint32_t> &_i
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) 0);
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, normal));
 
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, texCoords));
 
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, tangent));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, tangent));
 
     glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, bitangent));
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, bitangent));
 
     glBindVertexArray(0);
 }
 
 void Mesh::setVertices(const std::vector<Vertex> &_vertices)
 {
-
     vertices = _vertices;
 
     glBindVertexArray(vao);
@@ -107,19 +108,19 @@ void Mesh::setVertices(const std::vector<Vertex> &_vertices)
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) 0);
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, normal));
 
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, texCoords));
 
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, tangent));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, tangent));
 
     glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, bitangent));
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, bitangent));
 
     glBindVertexArray(0);
 }
@@ -241,6 +242,7 @@ void Mesh::getProperties(std::ostringstream &stream)
     stream << roughness << '\n';
     stream << ao << '\n';
     stream << isReflective << '\n';
+    stream << useFlatReflection << '\n';
 }
 
 void Mesh::applyTexture(const char *filepath)
@@ -261,17 +263,17 @@ void Mesh::applyTexture(const char *filepath)
         GLenum format;
         switch (channels)
         {
-        case 1:
-            format = GL_RED;
-            break;
+            case 1:
+                format = GL_RED;
+                break;
 
-        case 3:
-            format = GL_RGB;
-            break;
+            case 3:
+                format = GL_RGB;
+                break;
 
-        case 4:
-            format = GL_RGBA;
-            break;
+            case 4:
+                format = GL_RGBA;
+                break;
         }
 
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, pixels);
@@ -294,7 +296,7 @@ const std::vector<Vertex> &Mesh::getVertices() const
     return vertices;
 }
 
-const std::vector<uint32_t> & Mesh::getIndices() const
+const std::vector<uint32_t> &Mesh::getIndices() const
 {
     return indices;
 }
@@ -308,16 +310,16 @@ void Mesh::calculateBounidngSphere()
 {
     glm::vec3 center(0.f);
 
-    for (const auto& vertex:vertices)
+    for (const auto &vertex: vertices)
         center += vertex.position;
-    boundingSphereCenter = center / (float)vertices.size();
+    boundingSphereCenter = center / (float) vertices.size();
 
     float maxRadius = 0.f;
 
-    for (const auto& vertex:vertices)
+    for (const auto &vertex: vertices)
     {
         float dist = glm::length2(vertex.position - boundingSphereCenter);
-        if (dist>maxRadius)
+        if (dist > maxRadius)
             maxRadius = dist;
     }
 
@@ -351,8 +353,7 @@ bool Texture::loadCubemap(const std::vector<std::string> &faces)
                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
                 0, GL_RGB, w, h, 0, GL_RGB,
                 GL_UNSIGNED_BYTE, pixels);
-        }
-        else
+        } else
             return false;
         stbi_image_free(pixels);
     }
