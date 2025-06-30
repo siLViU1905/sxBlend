@@ -1,0 +1,11 @@
+Model Information:
+* title:	Weathered AK47
+* source:	https://sketchfab.com/3d-models/weathered-ak47-c95a94e9c68340ff8b0ea49dc3ff81c2
+* author:	mikelkel2 (https://sketchfab.com/mikelkel2)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Weathered AK47" (https://sketchfab.com/3d-models/weathered-ak47-c95a94e9c68340ff8b0ea49dc3ff81c2) by mikelkel2 (https://sketchfab.com/mikelkel2) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

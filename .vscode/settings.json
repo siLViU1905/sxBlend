@@ -78,5 +78,6 @@
         "unordered_set": "cpp",
         "any": "cpp",
         "core": "cpp"
-    }
+    },
+    "C_Cpp.default.compilerPath": "cl.exe"
 }

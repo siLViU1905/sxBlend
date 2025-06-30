@@ -1,0 +1,11 @@
+Model Information:
+* title:	Teapot
+* source:	https://sketchfab.com/3d-models/teapot-2218240dae8e4e8dba9f51c0cc78301c
+* author:	ksa2030 (https://sketchfab.com/ksa2030)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Teapot" (https://sketchfab.com/3d-models/teapot-2218240dae8e4e8dba9f51c0cc78301c) by ksa2030 (https://sketchfab.com/ksa2030) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

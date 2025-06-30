@@ -57,7 +57,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <sys/types.h>
 
-// Our compile configuration
+
 #include <assimp/defs.h>
 
 // Some types moved to separate header due to size of operators
