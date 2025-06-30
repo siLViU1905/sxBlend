@@ -9,6 +9,12 @@ struct Vertex
  glm::vec2 texCoords;
  glm::vec3 tangent;
  glm::vec3 bitangent;
+
+ bool operator<(const Vertex& other) const {
+        if (position.x != other.position.x) return position.x < other.position.x;
+        if (position.y != other.position.y) return position.y < other.position.y;
+        return position.z < other.position.z;
+    }
 };
 
 #endif // __VERTEX_H__

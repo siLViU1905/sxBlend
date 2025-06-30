@@ -8,6 +8,7 @@
 #include "graphics/Mesh.h"
 #include "../manifold/manifold.h"
 #include "../manifold/meshIO.h"
+#include "graphics/Vertex.h"
 
 namespace sx
 {
@@ -27,6 +28,12 @@ namespace sx
         static void applyMeshTransforms(manifold::Manifold& manifold, const Mesh& mesh);
 
         static void calculateNormals(std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+
+        static void calculateTexCoords(std::vector<Vertex>& vertices);
+
+        static void calculateTangentsAndBitangents(std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+
+        static manifold::Manifold meshToManifold(const Mesh& mesh);
     public:
 
         static void performOperation(Mesh& meshA, const Mesh& meshB, MeshBooleanOperation operation, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
