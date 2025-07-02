@@ -1691,7 +1691,7 @@ Application::Application() : camera(window, glm::vec3(0.f, 2.f, 3.f), 2.f) {
   MeshManager::generatePlaneMesh(vertices, indices);
 
   grid = new Mesh(vertices, indices);
-  grid->scale = glm::vec3(20.f, 0.f, 20.f);
+  grid->scale = glm::vec3(100.f, 0.f, 100.f);
   grid->color = glm::vec3(0.2f);
   grid->position.y = -1.f;
 

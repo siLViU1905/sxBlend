@@ -67,8 +67,8 @@ namespace sx
     void MeshManager::generateGridLines(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices)
     {
         int j = 0;
-        float length = 12.f;
-        float step = 0.2f;
+        float length = 120.f;
+        float step = 2.2f;
         for (float i = -length; i < length; i += step)
         {
             Vertex vertex;

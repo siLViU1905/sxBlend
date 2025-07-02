@@ -213,13 +213,13 @@ manifold::Manifold MeshBoolean::createManifoldFromMesh(const Mesh &mesh)
     result = manifold::Manifold::Sphere(1.f, mesh.slices);
     break;
   case MeshType::CYLINDER:
-    result = manifold::Manifold::Cylinder(1.f, 1.f, 1.f, mesh.slices, true);
+    result = manifold::Manifold::Cylinder(mesh.scale.y, (mesh.scale.x + mesh.scale.z) / 2.f, (mesh.scale.x + mesh.scale.z) / 2.f, mesh.slices, true);
     break;
   case MeshType::CONE:
-    result = manifold::Manifold::Cylinder(1.f, 1.f, 0.f, mesh.slices, true);
+    result = manifold::Manifold::Cylinder(mesh.scale.y, (mesh.scale.x + mesh.scale.z) / 2.f, 0.f, mesh.slices, true);
     break;
   case MeshType::PLANE:
-    result = manifold::Manifold::Cube(manifold::vec3(1.0f, 1.0f, 0.01f), true);
+    result = manifold::Manifold::Cube(manifold::vec3(mesh.scale.x, mesh.scale.y, 0.01f), true);
     break;
 
     default:
