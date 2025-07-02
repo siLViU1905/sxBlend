@@ -201,20 +201,35 @@ void MeshBoolean::manifoldToMesh(const manifold::Manifold &manifold,
   calculateTangentsAndBitangents(vertices, indices);
 }
 
-manifold::Manifold MeshBoolean::createManifoldFromMesh(const Mesh &mesh) {
-  switch (mesh.type) {
+manifold::Manifold MeshBoolean::createManifoldFromMesh(const Mesh &mesh) 
+{
+  manifold::Manifold result;
+  switch (mesh.type) 
+  {
   case MeshType::CUBE:
-    return manifold::Manifold::Cube(manifold::vec3(1.f), true);
+    result = manifold::Manifold::Cube(manifold::vec3(1.f), true);
+    break;
   case MeshType::SPHERE:
-    return manifold::Manifold::Sphere(1.f, mesh.slices);
+    result = manifold::Manifold::Sphere(1.f, mesh.slices);
+    break;
   case MeshType::CYLINDER:
-    return manifold::Manifold::Cylinder(1.f, 1.f, 1.f, mesh.slices, true);
+    result = manifold::Manifold::Cylinder(1.f, 1.f, 1.f, mesh.slices, true);
+    break;
   case MeshType::CONE:
-    return manifold::Manifold::Cylinder(1.f, 1.f, 0.f, mesh.slices, true);
+    result = manifold::Manifold::Cylinder(1.f, 1.f, 0.f, mesh.slices, true);
+    break;
   case MeshType::PLANE:
-    return manifold::Manifold::Cube(manifold::vec3(1.0f, 1.0f, 0.01f), true);
+    result = manifold::Manifold::Cube(manifold::vec3(1.0f, 1.0f, 0.01f), true);
+    break;
+
+    default:
+    result = manifold::Manifold();
+    break;
   }
-  return manifold::Manifold();
+  
+   result = result.Rotate(90.0,0.0,0.0);
+
+   return result;
 }
 
 void MeshBoolean::applyMeshTransforms(manifold::Manifold &manifold,
