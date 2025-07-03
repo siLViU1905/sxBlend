@@ -2,38 +2,36 @@
 #define __SHADERMANAGER_H__
 #include "graphics/Shader.h"
 
-namespace sx
-{
+namespace sx {
 
-    class ShaderManager
-    {
-        static Shader basicShader;
+class ShaderManager {
+  Shader basicShader;
 
-        static Shader modelBasicShader;
+  Shader modelBasicShader;
 
-        static Shader lightningShader;
+  Shader lightningShader;
 
-        static Shader modelLightningShader;
+  Shader modelLightningShader;
 
-        static Shader pbrLightningShader;
+  Shader pbrLightningShader;
 
-        static Shader modelPbrLightningShader;
+  Shader modelPbrLightningShader;
 
-        static Shader shadowMapShader;
+  Shader shadowMapShader;
 
-        static Shader reflectionShader;
+  Shader reflectionShader;
 
-        static Shader skyboxShader;
+  Shader skyboxShader;
 
-        static ShaderManager* shaderManager;
+  static ShaderManager *shaderManager;
 
-        ShaderManager();
+  ShaderManager();
 
-        public:
-        static ShaderManager* getShaderManager();
+public:
+  static ShaderManager *getShaderManager();
 
-        friend class Application;
-    };
-}
+  friend class Application;
+};
+} // namespace sx
 
 #endif // __SHADERMANAGER_H__

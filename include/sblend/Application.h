@@ -2,125 +2,130 @@
 #define __APPLICATION_H__
 #include "../GL/glad.h"
 #include "../GLFW/glfw3.h"
-#include "graphics/Model.h"
-#include "graphics/Shader.h"
-#include "graphics/Vertex.h"
-#include "Menu.h"
-#include "graphics/Mesh.h"
-#include "MeshManager.h"
-#include "ShaderManager.h"
 #include "Camera.h"
 #include "LightManager.h"
-#include "graphics/Shadow.h"
-#include <fstream>
-#include "physics/PhysicsWorld.h"
-#include  "graphics/Reflection.h"
-#include "graphics/Skybox.h"
+#include "Menu.h"
 #include "MeshBoolean.h"
+#include "MeshManager.h"
+#include "ShaderManager.h"
+#include "Terrain.h"
+#include "graphics/Mesh.h"
+#include "graphics/Model.h"
+#include "graphics/Reflection.h"
+#include "graphics/Shader.h"
+#include "graphics/Shadow.h"
+#include "graphics/Skybox.h"
+#include "graphics/Vertex.h"
+#include "physics/PhysicsWorld.h"
+#include <fstream>
 
-namespace sx
-{
-    typedef GLFWwindow *Window;
 
-    class Application
-    {
-        static int WINDOW_WIDTH, WINDOW_HEIGHT;
-        Window window;
+namespace sx {
+typedef GLFWwindow *Window;
 
-        static void keyCallback(Window window, int key, int scancode, int action, int mods);
+class Application {
+  static int WINDOW_WIDTH, WINDOW_HEIGHT;
+  Window window;
 
-        static void resizeCallback(Window window, int width, int height);
+  static void keyCallback(Window window, int key, int scancode, int action,
+                          int mods);
 
-        static void scrollCallback(Window window, double x, double y);
+  static void resizeCallback(Window window, int width, int height);
 
-        static bool swapInterval;
+  static void scrollCallback(Window window, double x, double y);
 
-        ImGuiIO *imGuiIo;
+  static bool swapInterval;
 
-        MainMenu mainMenu;
+  ImGuiIO *imGuiIo;
 
-        bool renderObjectMenu;
+  MainMenu mainMenu;
 
-        bool renderLightMenu;
+  bool renderObjectMenu;
 
-        GLFWimage appIcon;
+  bool renderLightMenu;
 
-        static void newMenuFrame();
+  GLFWimage appIcon;
 
-        static void renderMenuFrame();
+  static void newMenuFrame();
 
-        static Application *application;
+  static void renderMenuFrame();
 
-        MeshManager *meshes;
+  static Application *application;
 
-        std::vector<Model> models;
+  MeshManager *meshes;
 
-        ShaderManager *shaders;
+  std::vector<Model> models;
 
-        LightManager lights;
+  ShaderManager *shaders;
 
-        Skybox *skybox;
+  LightManager lights;
 
-        bool useSkybox = false;
+  Skybox *skybox;
 
-        int lightCount = 0;
+  bool useSkybox = false;
 
-        int pbrLightCount = 0;
+  int lightCount = 0;
 
-        void updateMenuState();
+  int pbrLightCount = 0;
 
-        static bool windowResized;
+  void updateMenuState();
 
-        static glm::mat4 projection;
+  static bool windowResized;
 
-        static float fov;
+  static glm::mat4 projection;
 
-        Mesh *grid, *gridLines;
+  static float fov;
 
-        Camera camera;
+  Mesh *grid, *gridLines;
 
-        bool enableShadows = false;
+  Camera camera;
 
-        Shadow *shadow;
+  bool enableShadows = false;
 
-        Reflection *reflection;
+  Shadow *shadow;
 
-        Physics physicsWorld;
+  Reflection *reflection;
 
-        void updatePhysics();
+  Physics physicsWorld;
 
-        void renderWithNoShadows();
+  Terrain *terrain;
 
-        void renderWithShadows();
+  bool useTerrain = false;
 
-        void handleRightClickedMouseEventForMeshes();
+  void updatePhysics();
 
-        void handleRightClickedMouseEventForModels();
+  void renderWithNoShadows();
 
-        void handleLeftClickedMouseEvent();
+  void renderWithShadows();
 
-        bool leftMouseButtonPressedThisFrame = false;
-        bool leftMouseButtonPressedBeforeThisFrame = false;
+  void handleRightClickedMouseEventForMeshes();
 
-        double mouseX, mouseY;
+  void handleRightClickedMouseEventForModels();
 
-        Application();
+  void handleLeftClickedMouseEvent();
 
-    public:
-        Application(const Application &app) = delete;
+  bool leftMouseButtonPressedThisFrame = false;
+  bool leftMouseButtonPressedBeforeThisFrame = false;
 
-        Application(Application &&app) = delete;
+  double mouseX, mouseY;
 
-        Application &operator=(const Application &app) = delete;
+  Application();
 
-        Application &operator=(Application &&app) = delete;
+public:
+  Application(const Application &app) = delete;
 
-        void run();
+  Application(Application &&app) = delete;
 
-        static Application *getApplication();
+  Application &operator=(const Application &app) = delete;
 
-        static void terminateApplication(Application *&application);
-    };
-}
+  Application &operator=(Application &&app) = delete;
+
+  void run();
+
+  static Application *getApplication();
+
+  static void terminateApplication(Application *&application);
+};
+} // namespace sx
 
 #endif // __APPLICATION_H__

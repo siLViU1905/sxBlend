@@ -2,15 +2,7 @@
 
 namespace sx
 {
-    Shader ShaderManager::basicShader;
-    Shader ShaderManager::modelBasicShader;
-    Shader ShaderManager::lightningShader;
-    Shader ShaderManager::modelLightningShader;
-    Shader ShaderManager::pbrLightningShader;
-    Shader ShaderManager::modelPbrLightningShader;
-    Shader ShaderManager::shadowMapShader;
-    Shader ShaderManager::reflectionShader;
-    Shader ShaderManager::skyboxShader;
+
 
     ShaderManager *ShaderManager::shaderManager = nullptr;
 

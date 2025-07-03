@@ -19,7 +19,8 @@ namespace sx
         LOAD_SCENE,
         LOAD_MODEL,
         LOAD_TEXTURE,
-        LOAD_SKYBOX
+        LOAD_SKYBOX,
+        LOAD_TERRAIN
     };
 
     struct LoadRequest
@@ -184,6 +185,10 @@ namespace sx
         std::unordered_map<int, int> lightTypeCounter;
 
         std::vector<unsigned char> selectedModelIndicator;
+ 
+        bool terrainIsExistent = false;
+
+        bool isTerrainSelected = false;
 
         ObjectMenu objectMenu;
 
@@ -198,6 +203,10 @@ namespace sx
         bool savePositionAndVelocity = false;
 
         int chosenMeshForBoolean;
+
+        float terrainMaxHeight = 2.f, terrainScale = 1.f;
+
+        bool renderTerrainMenu = false;
 
         LoadRequest loadRequest;
 

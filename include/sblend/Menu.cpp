@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "../GLFW/glfw3.h"
+#include "imgui/imgui.h"
 #include <string>
 
 namespace sx
@@ -47,16 +48,13 @@ namespace sx
             fileDialog.Open();
         }
 
-        if (ImGui::Button("Save"))
-            renderSaveMenu = true;
-
-        if (ImGui::Button("Load"))
+        if(ImGui::Button("Terrain"))
         {
-            loadRequest.type = LoadRequestType::LOAD_SCENE;
+            renderTerrainMenu = !renderTerrainMenu;
             fileDialog.Open();
         }
 
-        std::string simulationText =
+         std::string simulationText =
                 simulationState ? "Stop Simulation" : "Start Simulation";
 
         if (ImGui::Button(simulationText.c_str()))
@@ -69,6 +67,15 @@ namespace sx
         {
             resetSimulation = true;
             simulationState = false;
+        }
+
+        if (ImGui::Button("Save"))
+            renderSaveMenu = true;
+
+        if (ImGui::Button("Load"))
+        {
+            loadRequest.type = LoadRequestType::LOAD_SCENE;
+            fileDialog.Open();
         }
 
         ImGui::End();
@@ -293,6 +300,9 @@ namespace sx
             }
         }
 
+        if(terrainIsExistent)
+            ImGui::Checkbox("Terrain", &isTerrainSelected);
+
         ImGui::End();
 
         ImGui::SetNextWindowPos(lightMenu.menuPos, ImGuiCond_Always);
@@ -347,6 +357,22 @@ namespace sx
                         chosenMeshForBoolean = i;
                         break;
                     }
+            ImGui::End();
+        }
+
+        if(renderTerrainMenu)
+        {
+            ImGui::Begin("Terrain properties");
+
+            ImGui::InputFloat("Max Height", &terrainMaxHeight);
+            ImGui::InputFloat("Scale", &terrainScale);
+
+            if(ImGui::Button("Ok"))
+             {
+                loadRequest.type = LoadRequestType::LOAD_TERRAIN;
+                renderTerrainMenu = false;
+             }
+
             ImGui::End();
         }
 

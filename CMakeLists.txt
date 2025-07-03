@@ -42,6 +42,7 @@ set(SOURCE_FILES
         include/sblend/graphics/Reflection.cpp
         include/sblend/graphics/Skybox.cpp
         include/sblend/MeshBoolean.cpp
+        include/sblend/Terrain.cpp
         src/appMain.cpp
 )
 

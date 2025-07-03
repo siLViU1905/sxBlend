@@ -1,4 +1,6 @@
 #include "Application.h"
+#include "Menu.h"
+#include "Terrain.h"
 #include <stdexcept>
 #include <vector>
 #define STB_IMAGE_IMPLEMENTATION
@@ -421,6 +423,21 @@ void Application::updateMenuState() {
     }
   }
 
+  if (mainMenu.isTerrainSelected)
+  {
+    mainMenu.objectMenu.position = glm::value_ptr(terrain->mesh->position);
+    mainMenu.objectMenu.velocity = glm::value_ptr(terrain->mesh->velocity);
+    mainMenu.objectMenu.rotation = glm::value_ptr(terrain->mesh->angles);
+    mainMenu.objectMenu.scale = glm::value_ptr(terrain->mesh->scale);
+    mainMenu.objectMenu.color = glm::value_ptr(terrain->mesh->color);
+    mainMenu.objectMenu.metallic = &terrain->mesh->metallic;
+    mainMenu.objectMenu.roughness = &terrain->mesh->roughness;
+    mainMenu.objectMenu.ao = &terrain->mesh->ao;
+    mainMenu.objectMenu.reflective = &terrain->mesh->isReflective;
+    mainMenu.objectMenu.flatReflection = &terrain->mesh->useFlatReflection;
+    renderObjectMenu = true;
+  }
+
   if (mainMenu.saveProperties)
   {
     std::string filename = mainMenu.fileNameBuffer;
@@ -707,6 +724,23 @@ void Application::updateMenuState() {
     mainMenu.loadRequest.path.clear();
   }
 
+  if (mainMenu.loadRequest.type == LoadRequestType::LOAD_TERRAIN &&
+      !mainMenu.loadRequest.path.empty())
+  {
+    terrain->maxHeight = mainMenu.terrainMaxHeight;
+    terrain->scale = mainMenu.terrainScale;
+
+    if (!terrain->loadHeightMap(mainMenu.loadRequest.path.c_str()))
+    {
+      mainMenu.errorMenu.renderMenu = true;
+      mainMenu.errorMenu.title = "Terrain loading failed";
+      mainMenu.errorMenu.message = "File not found";
+    } else
+      mainMenu.terrainIsExistent = true;
+
+    mainMenu.loadRequest.path = "";
+  }
+
   if (mainMenu.chosenMeshForBoolean != -1)
   {
     std::vector<Vertex> newVertices;
@@ -843,6 +877,8 @@ void Application::renderWithNoShadows() {
         shaders->skyboxShader.setMat4("view",
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
+
+        terrain->render(shaders->lightningShader);
       }
 
     for (auto &rm : models)
@@ -863,6 +899,8 @@ void Application::renderWithNoShadows() {
         shaders->skyboxShader.setMat4("view",
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
+
+        terrain->render(shaders->lightningShader);
       }
 
     reflection->unbind();
@@ -889,6 +927,8 @@ void Application::renderWithNoShadows() {
     for (auto &m : models)
       if (!m.isReflective)
         m.render(shaders->modelLightningShader);
+
+    terrain->render(shaders->lightningShader);
 
     if (!useSkybox)
     {
@@ -940,6 +980,8 @@ void Application::renderWithNoShadows() {
         shaders->skyboxShader.setMat4("view",
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
+
+        terrain->render(shaders->pbrLightningShader);
       }
 
     for (auto &rm : models)
@@ -960,6 +1002,8 @@ void Application::renderWithNoShadows() {
         shaders->skyboxShader.setMat4("view",
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
+
+        terrain->render(shaders->pbrLightningShader);
       }
 
     reflection->unbind();
@@ -986,6 +1030,8 @@ void Application::renderWithNoShadows() {
     for (auto &m : models)
       if (!m.isReflective)
         m.render(shaders->modelPbrLightningShader);
+
+    terrain->render(shaders->pbrLightningShader);
 
     if (!useSkybox)
     {
@@ -1035,6 +1081,8 @@ void Application::renderWithNoShadows() {
         shaders->skyboxShader.setMat4("view",
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
+
+        terrain->render(shaders->basicShader);
       }
 
     for (auto &rm : models)
@@ -1055,6 +1103,8 @@ void Application::renderWithNoShadows() {
         shaders->skyboxShader.setMat4("view",
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
+
+        terrain->render(shaders->basicShader);
       }
 
     reflection->unbind();
@@ -1074,6 +1124,8 @@ void Application::renderWithNoShadows() {
     for (auto &m : models)
       if (!m.isReflective)
         m.render(shaders->modelBasicShader);
+
+    terrain->render(shaders->basicShader);
 
     if (!useSkybox)
     {
@@ -1183,6 +1235,9 @@ void Application::renderWithShadows() {
   for (Model &model : models)
     shadow->apply_to_model(model);
 
+  if (useTerrain)
+    shadow->apply_to_mesh(*terrain->mesh);
+
   shadow->shadowMode(false, WINDOW_WIDTH, WINDOW_HEIGHT);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1231,6 +1286,10 @@ void Application::renderWithShadows() {
         shaders->modelLightningShader.setMat4("camera.view", reflectionView);
         for (auto &m : models)
           m.render(shaders->modelLightningShader);
+
+           skybox->render(shaders->skyboxShader);
+
+          terrain->render(shaders->lightningShader);
       }
 
     for (auto &rm : models)
@@ -1251,6 +1310,8 @@ void Application::renderWithShadows() {
         shaders->skyboxShader.setMat4("view",
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
+
+         terrain->render(shaders->lightningShader);
       }
 
     reflection->unbind();
@@ -1276,6 +1337,8 @@ void Application::renderWithShadows() {
     for (auto &m : models)
       if (!m.isReflective)
         m.render(shaders->modelLightningShader);
+
+      terrain->render(shaders->lightningShader);
 
     if (!useSkybox)
     {
@@ -1322,6 +1385,10 @@ void Application::renderWithShadows() {
         shaders->modelPbrLightningShader.setMat4("camera.view", reflectionView);
         for (auto &m : models)
           m.render(shaders->modelPbrLightningShader);
+
+           skybox->render(shaders->skyboxShader);
+
+            terrain->render(shaders->pbrLightningShader);
       }
 
     for (auto &rm : models)
@@ -1342,6 +1409,8 @@ void Application::renderWithShadows() {
         shaders->skyboxShader.setMat4("view",
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
+
+         terrain->render(shaders->pbrLightningShader);
       }
 
     reflection->unbind();
@@ -1715,6 +1784,8 @@ Application::Application() : camera(window, glm::vec3(0.f, 2.f, 3.f), 2.f) {
 
   skybox = new Skybox(vertices, indices);
 
+  terrain = new Terrain();
+
   Mesh::MeshTypesMap.emplace(MeshType::PLANE, "PLANE");
   Mesh::MeshTypesMap.emplace(MeshType::CIRCLE, "CIRCLE");
   Mesh::MeshTypesMap.emplace(MeshType::CUBE, "CUBE");
@@ -1762,6 +1833,8 @@ Application *Application::getApplication() {
 }
 
 void Application::terminateApplication(Application *&application) {
+  delete application->terrain;
+
   delete application->skybox;
 
   delete application->reflection;
