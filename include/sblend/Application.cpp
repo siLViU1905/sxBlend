@@ -223,6 +223,7 @@ void Application::updateMenuState() {
       mainMenu.selectedLight = LightType::NaN;
       shaders->lightningShader.setInt("lightCount", ++lightCount);
       shaders->modelLightningShader.setInt("lightCount", lightCount);
+      shaders->terrainLightningShader.setInt("lightCount", lightCount);
       break;
 
     case LightType::DIRECTIONAL:
@@ -230,6 +231,7 @@ void Application::updateMenuState() {
       mainMenu.selectedLight = LightType::NaN;
       shaders->lightningShader.setInt("lightCount", ++lightCount);
       shaders->modelLightningShader.setInt("lightCount", lightCount);
+      shaders->terrainLightningShader.setInt("lightCount", lightCount);
       break;
 
     case LightType::SPOT:
@@ -237,6 +239,7 @@ void Application::updateMenuState() {
       mainMenu.selectedLight = LightType::NaN;
       shaders->lightningShader.setInt("lightCount", ++lightCount);
       shaders->modelLightningShader.setInt("lightCount", lightCount);
+      shaders->terrainLightningShader.setInt("lightCount", lightCount);
       break;
 
     case LightType::PBR:
@@ -244,6 +247,7 @@ void Application::updateMenuState() {
       mainMenu.selectedLight = LightType::NaN;
       shaders->pbrLightningShader.setInt("lightCount", ++pbrLightCount);
       shaders->modelPbrLightningShader.setInt("lightCount", pbrLightCount);
+      shaders->terrainPbrLightningShader.setInt("lightCount", pbrLightCount);
       break;
     }
   }
@@ -855,6 +859,12 @@ void Application::renderWithNoShadows() {
   shaders->terrainBasicShader.setVec3("camera.position", camera.getPosition());
   shaders->terrainBasicShader.setInt("useShadows", 0);
 
+  shaders->terrainLightningShader.setMat4("projection", projection);
+  shaders->terrainLightningShader.setMat4("camera.view", camera.getView());
+  shaders->terrainLightningShader.setVec3("camera.position",
+                                          camera.getPosition());
+  shaders->terrainLightningShader.setInt("useShadows", 0);
+
   if (!useSkybox)
   {
     grid->render(shaders->basicShader);
@@ -890,7 +900,9 @@ void Application::renderWithNoShadows() {
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
 
-        terrain->render(shaders->lightningShader);
+        shaders->terrainLightningShader.setMat4(
+            "view", glm::mat4(glm::mat3(reflectionView)));
+        terrain->render(shaders->terrainLightningShader);
       }
 
     for (auto &rm : models)
@@ -912,7 +924,9 @@ void Application::renderWithNoShadows() {
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
 
-        terrain->render(shaders->lightningShader);
+        shaders->terrainLightningShader.setMat4(
+            "view", glm::mat4(glm::mat3(reflectionView)));
+        terrain->render(shaders->terrainLightningShader);
       }
 
     reflection->unbind();
@@ -926,10 +940,16 @@ void Application::renderWithNoShadows() {
     shaders->modelLightningShader.setVec3("camera.position",
                                           camera.getPosition());
 
+    shaders->terrainLightningShader.setMat4("projection", projection);
+    shaders->terrainLightningShader.setMat4("camera.view", camera.getView());
+    shaders->terrainLightningShader.setVec3("camera.position",
+                                            camera.getPosition());
+
     for (int i = 0; i < lights.lights.size(); ++i)
     {
       lights.lights[i].apply_to_shader(shaders->lightningShader, i);
       lights.lights[i].apply_to_shader(shaders->modelLightningShader, i);
+      lights.lights[i].apply_to_shader(shaders->terrainLightningShader, i);
     }
 
     for (auto &m : meshes->meshes)
@@ -940,7 +960,7 @@ void Application::renderWithNoShadows() {
       if (!m.isReflective)
         m.render(shaders->modelLightningShader);
 
-    terrain->render(shaders->lightningShader);
+    terrain->render(shaders->terrainLightningShader);
 
     if (!useSkybox)
     {
@@ -993,7 +1013,9 @@ void Application::renderWithNoShadows() {
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
 
-        terrain->render(shaders->pbrLightningShader);
+        shaders->terrainPbrLightningShader.setMat4(
+            "view", glm::mat4(glm::mat3(reflectionView)));
+        terrain->render(shaders->terrainPbrLightningShader);
       }
 
     for (auto &rm : models)
@@ -1015,7 +1037,9 @@ void Application::renderWithNoShadows() {
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
 
-        terrain->render(shaders->pbrLightningShader);
+        shaders->terrainPbrLightningShader.setMat4(
+            "view", glm::mat4(glm::mat3(reflectionView)));
+        terrain->render(shaders->terrainPbrLightningShader);
       }
 
     reflection->unbind();
@@ -1030,10 +1054,16 @@ void Application::renderWithNoShadows() {
     shaders->modelPbrLightningShader.setVec3("camera.position",
                                              camera.getPosition());
 
+    shaders->terrainPbrLightningShader.setMat4("projection", projection);
+    shaders->terrainPbrLightningShader.setMat4("camera.view", camera.getView());
+    shaders->terrainPbrLightningShader.setVec3("camera.position",
+                                               camera.getPosition());
+
     for (int i = 0; i < lights.lights.size(); ++i)
     {
       lights.lights[i].apply_to_shader(shaders->pbrLightningShader, i);
       lights.lights[i].apply_to_shader(shaders->modelPbrLightningShader, i);
+      lights.lights[i].apply_to_shader(shaders->terrainPbrLightningShader, i);
     }
 
     for (auto &m : meshes->meshes)
@@ -1043,7 +1073,7 @@ void Application::renderWithNoShadows() {
       if (!m.isReflective)
         m.render(shaders->modelPbrLightningShader);
 
-    terrain->render(shaders->pbrLightningShader);
+    terrain->render(shaders->terrainPbrLightningShader);
 
     if (!useSkybox)
     {
@@ -1077,7 +1107,8 @@ void Application::renderWithNoShadows() {
     shaders->modelBasicShader.setVec3("camera.position", camera.getPosition());
 
     shaders->terrainBasicShader.setMat4("projection", projection);
-    shaders->terrainBasicShader.setVec3("camera.position", camera.getPosition());
+    shaders->terrainBasicShader.setVec3("camera.position",
+                                        camera.getPosition());
 
     for (auto &rm : meshes->meshes)
       if (rm.isReflective)
@@ -1097,6 +1128,8 @@ void Application::renderWithNoShadows() {
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
 
+        shaders->terrainBasicShader.setMat4(
+            "view", glm::mat4(glm::mat3(reflectionView)));
         terrain->render(shaders->terrainBasicShader);
       }
 
@@ -1119,6 +1152,8 @@ void Application::renderWithNoShadows() {
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
 
+        shaders->terrainBasicShader.setMat4(
+            "view", glm::mat4(glm::mat3(reflectionView)));
         terrain->render(shaders->terrainBasicShader);
       }
 
@@ -1131,6 +1166,10 @@ void Application::renderWithNoShadows() {
     shaders->modelBasicShader.use();
     shaders->modelBasicShader.setMat4("projection", projection);
     shaders->modelBasicShader.setMat4("camera.view", camera.getView());
+
+    shaders->terrainBasicShader.use();
+    shaders->terrainBasicShader.setMat4("projection", projection);
+    shaders->terrainBasicShader.setMat4("camera.view", camera.getView());
 
     for (auto &m : meshes->meshes)
       if (!m.isReflective)
@@ -1239,6 +1278,10 @@ void Application::renderWithShadows() {
 
   shaders->modelPbrLightningShader.setInt("useShadows", 1);
 
+  shaders->terrainLightningShader.setInt("useShadows", 1);
+
+  shaders->terrainPbrLightningShader.setInt("useShadows", 1);
+
   shadow->lightView = glm::lookAt(lights.lights.front().position,
                                   glm::vec3(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -1275,6 +1318,10 @@ void Application::renderWithShadows() {
 
   shadow->apply_shadow_texture(shaders->modelPbrLightningShader);
 
+  shadow->apply_shadow_texture(shaders->terrainLightningShader);
+
+  shadow->apply_shadow_texture(shaders->terrainPbrLightningShader);
+
   grid->render(shaders->basicShader);
   gridLines->render(shaders->basicShader);
 
@@ -1287,6 +1334,10 @@ void Application::renderWithShadows() {
     shaders->modelLightningShader.setMat4("projection", projection);
     shaders->modelLightningShader.setVec3("camera.position",
                                           camera.getPosition());
+
+    shaders->terrainLightningShader.setMat4("projection", projection);
+    shaders->terrainLightningShader.setVec3("camera.position",
+                                            camera.getPosition());
 
     for (auto &rm : meshes->meshes)
       if (rm.isReflective)
@@ -1302,9 +1353,12 @@ void Application::renderWithShadows() {
         for (auto &m : models)
           m.render(shaders->modelLightningShader);
 
+        shaders->skyboxShader.setMat4("view",
+                                      glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
 
-        terrain->render(shaders->lightningShader);
+        shaders->terrainLightningShader.setMat4("camera.view", reflectionView);
+        terrain->render(shaders->terrainLightningShader);
       }
 
     for (auto &rm : models)
@@ -1326,7 +1380,8 @@ void Application::renderWithShadows() {
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
 
-        terrain->render(shaders->lightningShader);
+        shaders->terrainLightningShader.setMat4("camera.view", reflectionView);
+        terrain->render(shaders->terrainLightningShader);
       }
 
     reflection->unbind();
@@ -1340,10 +1395,16 @@ void Application::renderWithShadows() {
     shaders->modelLightningShader.setVec3("camera.position",
                                           camera.getPosition());
 
+    shaders->terrainLightningShader.setMat4("projection", projection);
+    shaders->terrainLightningShader.setMat4("camera.view", camera.getView());
+    shaders->terrainLightningShader.setVec3("camera.position",
+                                            camera.getPosition());
+
     for (int i = 0; i < lights.lights.size(); ++i)
     {
       lights.lights[i].apply_to_shader(shaders->lightningShader, i);
       lights.lights[i].apply_to_shader(shaders->modelLightningShader, i);
+      lights.lights[i].apply_to_shader(shaders->terrainLightningShader, i);
     }
 
     for (auto &m : meshes->meshes)
@@ -1353,7 +1414,7 @@ void Application::renderWithShadows() {
       if (!m.isReflective)
         m.render(shaders->modelLightningShader);
 
-    terrain->render(shaders->lightningShader);
+    terrain->render(shaders->terrainLightningShader);
 
     if (!useSkybox)
     {
@@ -1387,6 +1448,10 @@ void Application::renderWithShadows() {
     shaders->modelPbrLightningShader.setVec3("camera.position",
                                              camera.getPosition());
 
+    shaders->terrainPbrLightningShader.setMat4("projection", projection);
+    shaders->terrainPbrLightningShader.setVec3("camera.position",
+                                               camera.getPosition());
+
     for (auto &rm : meshes->meshes)
       if (rm.isReflective)
       {
@@ -1403,7 +1468,9 @@ void Application::renderWithShadows() {
 
         skybox->render(shaders->skyboxShader);
 
-        terrain->render(shaders->pbrLightningShader);
+        shaders->terrainPbrLightningShader.setMat4("camera.view",
+                                                   reflectionView);
+        terrain->render(shaders->terrainPbrLightningShader);
       }
 
     for (auto &rm : models)
@@ -1425,7 +1492,9 @@ void Application::renderWithShadows() {
                                       glm::mat4(glm::mat3(reflectionView)));
         skybox->render(shaders->skyboxShader);
 
-        terrain->render(shaders->pbrLightningShader);
+        shaders->terrainPbrLightningShader.setMat4("camera.view",
+                                                   reflectionView);
+        terrain->render(shaders->terrainPbrLightningShader);
       }
 
     reflection->unbind();
@@ -1440,10 +1509,16 @@ void Application::renderWithShadows() {
     shaders->modelPbrLightningShader.setVec3("camera.position",
                                              camera.getPosition());
 
+    shaders->terrainPbrLightningShader.setMat4("projection", projection);
+    shaders->terrainPbrLightningShader.setMat4("camera.view", camera.getView());
+    shaders->terrainPbrLightningShader.setVec3("camera.position",
+                                             camera.getPosition());
+
     for (int i = 0; i < lights.lights.size(); ++i)
     {
       lights.lights[i].apply_to_shader(shaders->pbrLightningShader, i);
       lights.lights[i].apply_to_shader(shaders->modelPbrLightningShader, i);
+      lights.lights[i].apply_to_shader(shaders->terrainPbrLightningShader, i);
     }
 
     for (auto &m : meshes->meshes)
@@ -1452,6 +1527,8 @@ void Application::renderWithShadows() {
     for (auto &m : models)
       if (!m.isReflective)
         m.render(shaders->modelPbrLightningShader);
+
+        terrain->render(shaders->terrainPbrLightningShader);
 
     if (!useSkybox)
     {

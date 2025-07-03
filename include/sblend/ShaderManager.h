@@ -25,6 +25,10 @@ class ShaderManager {
 
   Shader terrainBasicShader;
 
+  Shader terrainLightningShader;
+
+  Shader terrainPbrLightningShader;
+
   static ShaderManager *shaderManager;
 
   ShaderManager();
