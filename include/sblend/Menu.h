@@ -1,236 +1,238 @@
 #ifndef __MENU_H__
 #define __MENU_H__
 #include "../imgui/imgui.h"
+#include "../imgui/imfilebrowser.h"
 #include "../imgui/imgui_impl_glfw.h"
 #include "../imgui/imgui_impl_opengl3.h"
-#include "../imgui/imfilebrowser.h"
+#include "MeshBoolean.h"
+#include "graphics/Light.h"
+#include "graphics/Mesh.h"
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "graphics/Light.h"
-#include "graphics/Mesh.h"
-#include "MeshBoolean.h"
-
-namespace sx
-{
-    enum class LoadRequestType
-    {
-        NONE,
-        LOAD_SCENE,
-        LOAD_MODEL,
-        LOAD_TEXTURE,
-        LOAD_SKYBOX,
-        LOAD_TERRAIN
-    };
-
-    struct LoadRequest
-    {
-        std::string path;
-        LoadRequestType type = LoadRequestType::NONE;
-    };
-
-    class Menu
-    {
-    protected:
-        virtual void render() = 0;
-
-    public:
-        friend class Application;
-    };
-
-    class ObjectMenu : protected Menu
-    {
-    protected:
-        void render() override;
-
-    private:
-        float *position;
-        float *velocity;
-        float *rotation;
-        float *scale;
-        float *color;
-        float *metallic;
-        float *roughness;
-        float *ao;
-        bool *reflective;
-        int *flatReflection;
 
-        bool renderMeshChoiceMenu = false;
-        MeshBooleanOperation booleanOperation;
 
-        ImGuiWindowFlags windowFlags;
+namespace sx {
+enum class LoadRequestType {
+  NONE,
+  LOAD_SCENE,
+  LOAD_MODEL,
+  LOAD_TEXTURE,
+  LOAD_SKYBOX,
+  LOAD_TERRAIN
+};
+
+struct LoadRequest {
+  std::string path;
+  LoadRequestType type = LoadRequestType::NONE;
+};
+
+class Menu {
+protected:
+  virtual void render() = 0;
+
+public:
+  friend class Application;
+};
+
+class ObjectMenu : protected Menu {
+protected:
+  void render() override;
 
-        ImVec2 menuPos, menuSize;
+private:
+  float *position;
+  float *velocity;
+  float *rotation;
+  float *scale;
+  float *color;
+  float *metallic;
+  float *roughness;
+  float *ao;
+  bool *reflective;
+  int *flatReflection;
 
-        bool rotateObjectWithMouse = true, scaleObjectWithMouse = false, translateObjectWithMouse = false;
+  float *grassColor;
+  float *rockColor;
+  float *snowColor;
 
-    public:
-        ObjectMenu();
+  bool renderMeshChoiceMenu = false;
+  MeshBooleanOperation booleanOperation;
 
-        friend class Application;
-        friend class MainMenu;
-    };
+  ImGuiWindowFlags windowFlags;
 
-    class LightMenu : protected Menu
-    {
-        std::vector<unsigned char> selectedLightIndicator;
-        bool deleteLight;
+  ImVec2 menuPos, menuSize;
 
-        ImVec2 menuPos, menuSize;
+  bool rotateObjectWithMouse = true, scaleObjectWithMouse = false,
+       translateObjectWithMouse = false;
 
-        ImGuiWindowFlags windowFlags;
+       bool isTerrainMenu = false;
 
-        float *position;
-        float *direction;
-        float *color;
-        float *diffuse;
-        float *specular;
-        float *ambient;
-        float *constant;
-        float *linear;
-        float *quadratic;
-        float *cutOff;
-        float *outerCutOff;
-        float *intensity;
+public:
+  ObjectMenu();
 
-    protected:
-        void render() override;
+  friend class Application;
+  friend class MainMenu;
+  friend class TerrainMenu;
+};
 
-    public:
-        LightMenu();
+class LightMenu : protected Menu {
+  std::vector<unsigned char> selectedLightIndicator;
+  bool deleteLight;
 
-        friend class Application;
-        friend class MainMenu;
-    };
+  ImVec2 menuPos, menuSize;
 
-    class ErrorMenu : protected Menu
-    {
-        std::string message;
-        std::string title;
-        bool renderMenu = false;
-        ImVec2 position;
+  ImGuiWindowFlags windowFlags;
 
-    protected:
-        void render() override;
+  float *position;
+  float *direction;
+  float *color;
+  float *diffuse;
+  float *specular;
+  float *ambient;
+  float *constant;
+  float *linear;
+  float *quadratic;
+  float *cutOff;
+  float *outerCutOff;
+  float *intensity;
 
-    public:
-        friend class Application;
-        friend class MainMenu;
-    };
+  
 
-    class MainMenu : protected Menu
-    {
-        bool meshBtnPressed = false;
-        bool lightBtnPressed = false;
-        bool modelBtnPressed = false;
-        MeshType selectedMesh = MeshType::NaN;
-        LightType selectedLight = LightType::NaN;
+protected:
+  void render() override;
 
-        bool useLightShader = false;
+public:
+  LightMenu();
 
-        bool usePbrLightShader = false;
+  friend class Application;
+  friend class MainMenu;
+};
 
-        bool castShadows = false;
+class ErrorMenu : protected Menu {
+  std::string message;
+  std::string title;
+  bool renderMenu = false;
+  ImVec2 position;
 
-        bool saveProperties = false;
+protected:
+  void render() override;
 
-        void getProperties(std::ostringstream &stream);
+public:
+  friend class Application;
+  friend class MainMenu;
+};
 
-        static constexpr int fNBufferSize = 32;
+class MainMenu : protected Menu {
+  bool meshBtnPressed = false;
+  bool lightBtnPressed = false;
+  bool modelBtnPressed = false;
+  MeshType selectedMesh = MeshType::NaN;
+  LightType selectedLight = LightType::NaN;
 
-        char fileNameBuffer[fNBufferSize];
+  bool useLightShader = false;
 
-        std::vector<std::string> existentMeshes;
+  bool usePbrLightShader = false;
 
-        std::vector<std::string> existentLights;
+  bool castShadows = false;
 
-        std::vector<std::string> existentModels;
+  bool saveProperties = false;
 
-        ImGuiWindowFlags windowFlags;
+  void getProperties(std::ostringstream &stream);
 
-        ImVec2 menuPos, menuSize;
+  static constexpr int fNBufferSize = 32;
 
-        int selectedMeshIndex;
+  char fileNameBuffer[fNBufferSize];
 
-        int selectedLightIndex;
+  std::vector<std::string> existentMeshes;
 
-        int selectedModelIndex;
+  std::vector<std::string> existentLights;
 
-        int modelCounter = 0;
+  std::vector<std::string> existentModels;
 
-        bool deleteObject;
+  ImGuiWindowFlags windowFlags;
 
-        bool deleteLight;
+  ImVec2 menuPos, menuSize;
 
-        bool deleteModel;
+  int selectedMeshIndex;
 
-        bool setSkybox = false;
+  int selectedLightIndex;
 
-        bool newSphere, newCircle, newTorus, newCone = false, newCylinder = false;
+  int selectedModelIndex;
 
-        int slices, stacks;
+  int modelCounter = 0;
 
-        int segments;
+  bool deleteObject;
 
-        bool generate = false;
+  bool deleteLight;
 
-        bool renderSaveMenu = false;
+  bool deleteModel;
 
-        std::vector<unsigned char> selectedMeshIndicator;
+  bool setSkybox = false;
 
-        std::unordered_map<int, int> meshTypeCounter;
+  bool newSphere, newCircle, newTorus, newCone = false, newCylinder = false;
 
-        std::vector<unsigned char> selectedLightIndicator;
+  int slices, stacks;
 
-        std::unordered_map<int, int> lightTypeCounter;
+  int segments;
 
-        std::vector<unsigned char> selectedModelIndicator;
- 
-        bool terrainIsExistent = false;
+  bool generate = false;
 
-        bool isTerrainSelected = false;
+  bool renderSaveMenu = false;
 
-        ObjectMenu objectMenu;
+  std::vector<unsigned char> selectedMeshIndicator;
 
-        LightMenu lightMenu;
+  std::unordered_map<int, int> meshTypeCounter;
 
-        bool displayFileDialog = false;
+  std::vector<unsigned char> selectedLightIndicator;
 
-        bool simulationState = false;
+  std::unordered_map<int, int> lightTypeCounter;
 
-        bool resetSimulation = false;
+  std::vector<unsigned char> selectedModelIndicator;
 
-        bool savePositionAndVelocity = false;
+  bool terrainIsExistent = false;
 
-        int chosenMeshForBoolean;
+  bool isTerrainSelected = false;
 
-        float terrainMaxHeight = 2.f, terrainScale = 1.f;
+  ObjectMenu objectMenu;
 
-        bool renderTerrainMenu = false;
+  LightMenu lightMenu;
 
-        LoadRequest loadRequest;
+  bool displayFileDialog = false;
 
-        ImGui::FileBrowser fileDialog;
+  bool simulationState = false;
 
-        ErrorMenu errorMenu;
+  bool resetSimulation = false;
 
-    protected:
-        void render() override;
+  bool savePositionAndVelocity = false;
 
-    public:
-        MainMenu();
+  int chosenMeshForBoolean;
 
-        friend class Application;
-    };
+  float terrainMaxHeight = 2.f, terrainScale = 1.f;
 
-    class FileManagerMenu : protected Menu
-    {
-    protected:
-        void render() override;
+  bool renderTerrainMenu = false;
 
-    public:
-        friend class Application;
-    };
-}
+  LoadRequest loadRequest;
+
+  ImGui::FileBrowser fileDialog;
+
+  ErrorMenu errorMenu;
+
+protected:
+  void render() override;
+
+public:
+  MainMenu();
+
+  friend class Application;
+};
+
+class FileManagerMenu : protected Menu {
+protected:
+  void render() override;
+
+public:
+  friend class Application;
+};
+} // namespace sx
 
 #endif // __MENU_H__

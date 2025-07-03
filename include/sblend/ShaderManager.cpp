@@ -17,6 +17,7 @@ namespace sx
         shadowMapShader.autoCompileAndLink("../../shaders/shadowMap.vert", "../../shaders/shadowMap.frag");
         reflectionShader.autoCompileAndLink("../../shaders/basic.vert", "../../shaders/reflection.frag");
         skyboxShader.autoCompileAndLink("../../shaders/skyBox.vert", "../../shaders/skyBox.frag");
+        terrainBasicShader.autoCompileAndLink("../../shaders/basic.vert", "../../shaders/terrainBasic.frag");
     }
 
     ShaderManager *ShaderManager::getShaderManager()

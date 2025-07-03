@@ -23,6 +23,8 @@ class ShaderManager {
 
   Shader skyboxShader;
 
+  Shader terrainBasicShader;
+
   static ShaderManager *shaderManager;
 
   ShaderManager();

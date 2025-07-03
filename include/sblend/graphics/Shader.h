@@ -30,6 +30,8 @@ class Shader
 
     void setMat4(const char* name, const glm::mat4& mat4);
 
+    bool isLocationValid(const char* name) const;
+
     ~Shader();
 };
 

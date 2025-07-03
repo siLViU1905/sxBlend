@@ -34,6 +34,10 @@ public:
 
    float maxHeight, scale;
 
+   glm::vec3 grassColor;
+   glm::vec3 rockColor;
+   glm::vec3 snowColor;
+
   ~Terrain();
 };
 } // namespace sx

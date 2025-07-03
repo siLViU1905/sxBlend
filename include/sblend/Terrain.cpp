@@ -67,7 +67,12 @@ void Terrain::calculateTangentBitagent(std::vector<Vertex> &vertices,
 
 void Terrain::setupMesh() { mesh = new Mesh(vertices, indices); }
 
-Terrain::Terrain() {}
+Terrain::Terrain() 
+{
+  grassColor = glm::vec3(0.2f,0.6f,0.2f);
+  rockColor = glm::vec3(0.4f);
+  snowColor = glm::vec3(0.95f);
+}
 
 bool Terrain::loadHeightMap(const char *path) {
   int channels;
@@ -130,7 +135,14 @@ bool Terrain::loadHeightMap(const char *path) {
 
 void Terrain::render(Shader &shader) {
   if (mesh)
+  {
+    shader.setFloat("maxHeight", maxHeight);
+    shader.setVec3("grassColor", grassColor);
+    shader.setVec3("rockColor", rockColor);
+    shader.setVec3("snowColor", snowColor);
+    
     mesh->render(shader);
+  }
 }
 
 Terrain::~Terrain() {
