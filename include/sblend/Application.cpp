@@ -752,6 +752,28 @@ void Application::updateMenuState() {
     mainMenu.loadRequest.path = "";
   }
 
+  if (mainMenu.loadRequest.type == LoadRequestType::LOAD_TERRAIN_TEXTURES &&
+      !mainMenu.loadRequest.path.empty())
+  {
+    auto imageType = mainMenu.loadRequest.path.substr(
+        mainMenu.loadRequest.path.find_last_of('.'));
+    auto directory = mainMenu.loadRequest.path.substr(
+        0, mainMenu.loadRequest.path.find_last_of("/\\") + 1);
+
+    std::vector<std::string> texturesPaths;
+    texturesPaths.push_back(mainMenu.loadRequest.path);
+    texturesPaths.push_back(directory + "rock" + imageType);
+    texturesPaths.push_back(directory + "snow" + imageType);
+
+    if (!terrain->loadTextures(texturesPaths))
+    {
+      mainMenu.errorMenu.renderMenu = true;
+      mainMenu.errorMenu.title = "Terrain textures loading failed";
+      mainMenu.errorMenu.message = "File not found";
+    }
+    mainMenu.loadRequest.path = "";
+  }
+
   if (mainMenu.chosenMeshForBoolean != -1)
   {
     std::vector<Vertex> newVertices;
@@ -1512,7 +1534,7 @@ void Application::renderWithShadows() {
     shaders->terrainPbrLightningShader.setMat4("projection", projection);
     shaders->terrainPbrLightningShader.setMat4("camera.view", camera.getView());
     shaders->terrainPbrLightningShader.setVec3("camera.position",
-                                             camera.getPosition());
+                                               camera.getPosition());
 
     for (int i = 0; i < lights.lights.size(); ++i)
     {
@@ -1528,7 +1550,7 @@ void Application::renderWithShadows() {
       if (!m.isReflective)
         m.render(shaders->modelPbrLightningShader);
 
-        terrain->render(shaders->terrainPbrLightningShader);
+    terrain->render(shaders->terrainPbrLightningShader);
 
     if (!useSkybox)
     {

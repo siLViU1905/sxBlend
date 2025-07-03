@@ -3,6 +3,7 @@
 #include "graphics/Shader.h"
 #include "graphics/Mesh.h"
 #include <cstdint>
+#include <type_traits>
 #include <vector>
 
 namespace sx {
@@ -23,6 +24,8 @@ class Terrain
 
   void setupMesh();
 
+  uint32_t textures[3];
+
 public:
   Terrain();
 
@@ -37,6 +40,10 @@ public:
    glm::vec3 grassColor;
    glm::vec3 rockColor;
    glm::vec3 snowColor;
+
+   bool hasTextures = false;
+
+   bool loadTextures(const std::vector<std::string>& paths);
 
   ~Terrain();
 };

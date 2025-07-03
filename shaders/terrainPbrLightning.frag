@@ -72,8 +72,6 @@ out vec4 FragColor;
 
 uniform int hasTex;
 
-uniform sampler2D _texture;
-
 uniform float maxHeight;
 
 uniform vec3 grassColor;
@@ -87,9 +85,9 @@ float calculateShadow(vec4 fpls)
     projCoords = projCoords * 0.5 + 0.5;
 
     if(projCoords.x < 0.0 || projCoords.x > 1.0 ||
-    projCoords.y < 0.0 || projCoords.y > 1.0 ||
-    projCoords.z < 0.0 || projCoords.z > 1.0)
-    return 0.0;
+        projCoords.y < 0.0 || projCoords.y > 1.0 ||
+        projCoords.z < 0.0 || projCoords.z > 1.0)
+        return 0.0;
 
     float currentDepth = projCoords.z;
 
@@ -111,6 +109,10 @@ float calculateShadow(vec4 fpls)
     return shadow;
 }
 
+uniform sampler2D grassTexture;
+uniform sampler2D rockTexture;
+uniform sampler2D snowTexture;
+
 void main()
 {
     vec3 N = normalize(Normal);
@@ -118,8 +120,23 @@ void main()
 
     float height = WorldPos.y / maxHeight;
 
-   vec3 usedColor = mix(grassColor, rockColor, smoothstep(0.2, 0.4, height));
-    usedColor = mix(usedColor, snowColor, smoothstep(0.6, 0.8, height));
+    vec3 grass, rock, snow;
+
+    if(hasTex == 0)
+    {
+        grass = grassColor;
+        rock = rockColor;
+        snow = snowColor;
+    }
+    else
+    {
+        grass = texture(grassTexture, TexCoords).rgb;
+        rock = texture(rockTexture, TexCoords).rgb;
+        snow = texture(snowTexture, TexCoords).rgb;
+    }
+
+    vec3 usedColor = mix(grass, rock, smoothstep(0.2, 0.4, height));
+    usedColor = mix(usedColor, snow, smoothstep(0.6, 0.8, height));
 
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, usedColor, metallic);
@@ -152,8 +169,8 @@ void main()
         float NdotL = max(dot(N, L), 0.0);
         vec3 lightContribution = (kD * usedColor / PI + specular) * radiance * NdotL;
 
-        if(i==0)
-         lightContribution *= (1.0 - shadow);
+        if(i == 0)
+            lightContribution *= (1.0 - shadow);
 
         Lo += lightContribution;
 

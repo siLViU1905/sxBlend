@@ -65,9 +65,9 @@ public:
 
     void render(Shader &shader);
 
-    void renderForModelUse(Shader &shader);
-
     void renderForSkyboxUse(Shader& shader);
+
+    void renderForTerrainUse(Shader& shader);
 
     std::vector<Texture> textures;
 

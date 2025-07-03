@@ -158,6 +158,10 @@ vec3 processSpotLight(int index, vec3 materialDiffuse, vec3 materialSpecular, fl
     float theta = dot(lightDir, normalize(-light[index].direction));
     float epsilon = light[index].cutOff - light[index].outerCutOff;
 
+    float spotIntensity = clamp((theta - light[index].outerCutOff) / epsilon, 0.0, 1.0);
+
+    spotIntensity = smoothstep(0.0, 1.0, spotIntensity);
+
     if (light[index].intensity > 0.0)
     {
         float distance = length(light[index].position - FragPos);
@@ -173,7 +177,7 @@ vec3 processSpotLight(int index, vec3 materialDiffuse, vec3 materialSpecular, fl
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
         vec3 specular = light[index].specular * spec * materialSpecular * light[index].color;
 
-        return ambient + (diffuse + specular) * light[index].intensity * attenuation;
+        return ambient + (diffuse + specular) * light[index].intensity * attenuation * spotIntensity;
     }
 
     return vec3(0.0);

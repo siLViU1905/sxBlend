@@ -19,7 +19,8 @@ enum class LoadRequestType {
   LOAD_MODEL,
   LOAD_TEXTURE,
   LOAD_SKYBOX,
-  LOAD_TERRAIN
+  LOAD_TERRAIN,
+  LOAD_TERRAIN_TEXTURES
 };
 
 struct LoadRequest {
@@ -192,6 +193,8 @@ class MainMenu : protected Menu {
   bool terrainIsExistent = false;
 
   bool isTerrainSelected = false;
+
+  bool deleteTerrain = false;
 
   ObjectMenu objectMenu;
 

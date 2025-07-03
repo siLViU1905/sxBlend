@@ -29,10 +29,8 @@ struct Light
 
 uniform Light light[6];
 uniform int lightCount;
-uniform vec3 aColor;
 uniform int hasTex;
 uniform int useShadows;
-uniform sampler2D _texture;
 
 out vec4 FragColor;
 
@@ -131,6 +129,10 @@ vec3 processSpotLight(int index, vec3 materialColor, vec3 normal)
 
     float epsilon = light[index].cutOff - light[index].outerCutOff;
 
+    float spotIntensity = clamp((theta - light[index].outerCutOff) / epsilon, 0.0, 1.0);
+
+    spotIntensity = smoothstep(0.0, 1.0, spotIntensity);
+
     vec3 ambient = light[index].ambient * materialColor;
 
     float diff = max(dot(normal, lightDir), 0.0);
@@ -142,12 +144,15 @@ vec3 processSpotLight(int index, vec3 materialColor, vec3 normal)
     vec3 specular = light[index].specular * spec * light[index].color;
 
     ambient *= attenuation;
-    diffuse *= attenuation * light[index].intensity;
-    specular *= attenuation * light[index].intensity;
+    diffuse *= attenuation * light[index].intensity * spotIntensity;
+    specular *= attenuation * light[index].intensity * spotIntensity;
 
     return ambient + diffuse + specular;
-
 }
+
+uniform sampler2D grassTexture;
+uniform sampler2D rockTexture;
+uniform sampler2D snowTexture;
 
 void main()
 {
@@ -156,8 +161,23 @@ void main()
 
     float height = WorldPos.y / maxHeight;
 
-    vec3 materialColor = mix(grassColor, rockColor, smoothstep(0.2, 0.4, height));
-    materialColor = mix(materialColor, snowColor, smoothstep(0.6, 0.8, height));
+    vec3 grass, rock, snow;
+
+    if(hasTex == 0)
+    {
+        grass = grassColor;
+        rock = rockColor;
+        snow = snowColor;
+    }
+    else
+    {
+        grass = texture(grassTexture, TexCoords).rgb;
+        rock = texture(rockTexture, TexCoords).rgb;
+        snow = texture(snowTexture, TexCoords).rgb;
+    }
+
+    vec3 materialColor = mix(grass, rock, smoothstep(0.2, 0.4, height));
+    materialColor = mix(materialColor, snow, smoothstep(0.6, 0.8, height));
 
     float shadow = (useShadows == 1) ? calculateShadow(FragPosLightSpace) : 0.0;
 

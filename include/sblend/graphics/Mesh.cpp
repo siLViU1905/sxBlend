@@ -172,30 +172,8 @@ void Mesh::render(Shader &shader)
     glBindVertexArray(0);
 }
 
-void Mesh::renderForModelUse(Shader &shader)
+void Mesh::renderForSkyboxUse(Shader &shader)
 {
-    shader.setFloat("material.shininess", 30.f);
-
-    for (int i = 0; i < textures.size(); ++i)
-    {
-        glActiveTexture(GL_TEXTURE0 + i);
-
-        if (textures[i].type == "normalTex")
-            shader.setInt("hasNormalTex", 1);
-        else
-            shader.setInt("hasNormalTex", 0);
-
-        if (textures[i].type == "heightTex")
-            shader.setInt("hasHeightTex", 1);
-        else
-            shader.setInt("hasHeightTex", 0);
-
-        shader.setInt(("material." + textures[i].type).c_str(), i);
-        glBindTexture(GL_TEXTURE_2D, textures[i].id);
-    }
-
-    glActiveTexture(GL_TEXTURE0);
-
     glBindVertexArray(vao);
 
     glDrawElements(renderMode, indices.size(), GL_UNSIGNED_INT, nullptr);
@@ -203,8 +181,22 @@ void Mesh::renderForModelUse(Shader &shader)
     glBindVertexArray(0);
 }
 
-void Mesh::renderForSkyboxUse(Shader &shader)
+void Mesh::renderForTerrainUse(Shader& shader)
 {
+    model = glm::mat4(1.f);
+    model = glm::translate(model, position);
+    model = glm::rotate(model, glm::radians(angles.x), glm::vec3(1.f, 0.f, 0.f));
+    model = glm::rotate(model, glm::radians(angles.y), glm::vec3(0.f, 1.f, 0.f));
+    model = glm::rotate(model, glm::radians(angles.z), glm::vec3(0.f, 0.f, 1.f));
+    model = glm::scale(model, scale);
+    mass = 0.6666f * (scale.x + scale.y + scale.z);
+
+    shader.setMat4("model", model);
+
+    shader.setFloat("metallic", metallic);
+    shader.setFloat("roughness", roughness);
+    shader.setFloat("ao", ao);
+
     glBindVertexArray(vao);
 
     glDrawElements(renderMode, indices.size(), GL_UNSIGNED_INT, nullptr);

@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "../GLFW/glfw3.h"
+#include "imgui/imgui.h"
 #include <string>
 
 namespace sx {
@@ -303,6 +304,18 @@ void MainMenu::render() {
   if (terrainIsExistent)
     ImGui::Checkbox("Terrain", &isTerrainSelected);
 
+  if (isTerrainSelected)
+  {
+    if (ImGui::Button("Delete"))
+      deleteTerrain = true;
+
+    if (ImGui::Button("Set Textures"))
+    {
+      loadRequest.type = LoadRequestType::LOAD_TERRAIN_TEXTURES;
+      fileDialog.Open();
+    }
+  }
+
   ImGui::End();
 
   ImGui::SetNextWindowPos(lightMenu.menuPos, ImGuiCond_Always);
@@ -474,7 +487,6 @@ void ObjectMenu::render() {
       ImGui::ColorPicker3("Grass", grassColor);
       ImGui::ColorPicker3("Rock", rockColor);
       ImGui::ColorPicker3("Snow", snowColor);
-     
     }
   }
 

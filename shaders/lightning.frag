@@ -124,6 +124,10 @@ vec3 processSpotLight(int index, vec3 materialColor, vec3 normal)
 
     float epsilon = light[index].cutOff - light[index].outerCutOff;
 
+    float spotIntensity = clamp((theta - light[index].outerCutOff) / epsilon, 0.0, 1.0);
+
+    spotIntensity = smoothstep(0.0, 1.0, spotIntensity);
+
     vec3 ambient = light[index].ambient * materialColor;
 
     float diff = max(dot(normal, lightDir), 0.0);
@@ -135,8 +139,8 @@ vec3 processSpotLight(int index, vec3 materialColor, vec3 normal)
     vec3 specular = light[index].specular * spec * light[index].color;
 
     ambient *= attenuation;
-    diffuse *= attenuation * light[index].intensity;
-    specular *= attenuation * light[index].intensity;
+    diffuse *= attenuation * light[index].intensity * spotIntensity;
+    specular *= attenuation * light[index].intensity * spotIntensity;
 
     return ambient + diffuse + specular;
 
@@ -162,9 +166,8 @@ void main()
         else if(light[i].type == 3)
             lightContribution = processSpotLight(i, materialColor, normal);
 
-        if(i == 0)    
+        if(i == 0)
             lightContribution *= (1.0 - shadow);
-    
 
         result += lightContribution;
     }
