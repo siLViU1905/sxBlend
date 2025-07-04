@@ -3,6 +3,7 @@
 #include "graphics/Shader.h"
 #include "graphics/Mesh.h"
 #include <cstdint>
+#include <sstream>
 #include <type_traits>
 #include <vector>
 
@@ -29,7 +30,7 @@ class Terrain
 public:
   Terrain();
 
-   Mesh* mesh = nullptr;
+  Mesh* mesh = nullptr;
 
   bool loadHeightMap(const char *path);
 
@@ -44,6 +45,12 @@ public:
    bool hasTextures = false;
 
    bool loadTextures(const std::vector<std::string>& paths);
+
+   std::vector<std::string> paths;
+
+   std::string heightMapPath;
+
+   void getProperties(std::ostringstream& stream) const;
 
   ~Terrain();
 };

@@ -75,6 +75,7 @@ Terrain::Terrain() {
 
 bool Terrain::loadHeightMap(const char *path) {
   int channels;
+  heightMapPath = path;
   unsigned char *data = stbi_load(path, &width, &height, &channels, 1);
 
   if (mesh)
@@ -142,17 +143,17 @@ void Terrain::render(Shader &shader) {
 
     shader.setInt("hasTex", hasTextures);
 
-      glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textures[0]);
-        shader.setInt("grassTexture", 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
+    shader.setInt("grassTexture", 0);
 
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, textures[1]);
-        shader.setInt("rockTexture", 1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, textures[1]);
+    shader.setInt("rockTexture", 1);
 
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, textures[2]);
-        shader.setInt("snowTexture", 2);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, textures[2]);
+    shader.setInt("snowTexture", 2);
 
     mesh->renderForTerrainUse(shader);
 
@@ -207,8 +208,34 @@ bool Terrain::loadTextures(const std::vector<std::string> &paths) {
     stbi_image_free(data);
   }
 
+  this->paths = paths;
   hasTextures = true;
   return true;
+}
+
+void Terrain::getProperties(std::ostringstream &stream) const {
+  stream.clear();
+  stream.str("");
+
+  stream << heightMapPath << '\n';
+
+    stream << mesh->position.x << ' ' << mesh->position.y << ' ' << mesh->position.z << '\n';
+    stream << mesh->velocity.x << ' ' << mesh->velocity.y << ' ' << mesh->velocity.z << '\n';
+    stream << mesh->scale.x << ' ' <<    mesh->scale.y << ' ' <<    mesh->scale.z << '\n';
+    stream << mesh->angles.x << ' ' <<   mesh->angles.y << ' ' <<   mesh->angles.z << '\n';
+    stream << mesh->color.x << ' ' <<    mesh->color.y << ' ' <<    mesh->color.z << '\n';
+    stream << mesh->metallic << '\n';
+    stream << mesh->roughness << '\n';
+    stream << mesh->ao << '\n';
+
+    stream << maxHeight << '\n';
+    stream << scale << '\n';
+
+  if (!hasTextures)
+    stream << "!";
+  else
+    for (const auto &path : paths)
+      stream << path << '\n';
 }
 
 Terrain::~Terrain() {

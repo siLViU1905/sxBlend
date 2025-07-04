@@ -474,6 +474,11 @@ void Application::updateMenuState() {
     outputFile << "SKYBOX\n";
     skybox->getProperties(saveProperties);
     outputFile << saveProperties.str() << '\n';
+
+    outputFile << "TERRAIN\n";
+    terrain->getProperties(saveProperties);
+    outputFile << saveProperties.str() << '\n';
+
     outputFile << "Scene\n";
     mainMenu.getProperties(saveProperties);
     outputFile << saveProperties.str() << '\n';
@@ -689,6 +694,46 @@ void Application::updateMenuState() {
         faces.push_back(directory + "front" + imagesType);
         faces.push_back(directory + "back" + imagesType);
         skybox->loadTexture(faces);
+      }
+
+      std::string hmPath;
+      inputFile >> hmPath;
+       inputFile >> hmPath;
+
+      if(terrain->loadHeightMap(hmPath.c_str()))
+      {
+        mainMenu.terrainIsExistent = true;
+        useTerrain = true;
+      }
+
+      inputFile >> terrain->mesh->position.x >>
+            terrain->mesh->position.y >>
+            terrain->mesh->position.z;
+        inputFile >> terrain->mesh->velocity.x >>
+            terrain->mesh->velocity.y >>
+            terrain->mesh->velocity.z;
+        inputFile >> terrain->mesh->scale.x >>
+            terrain->mesh->scale.y >> terrain->mesh->scale.z;
+        inputFile >> terrain->mesh->angles.x >>
+            terrain->mesh->angles.y >> terrain->mesh->angles.z;
+        inputFile >> terrain->mesh->color.x >>
+            terrain->mesh->color.y >> terrain->mesh->color.z;
+        inputFile >> terrain->mesh->metallic;
+        inputFile >> terrain->mesh->roughness;
+        inputFile >> terrain->mesh->ao;
+
+        inputFile >> terrain->maxHeight;
+        inputFile >> terrain->scale;
+
+      std::vector<std::string> terrainPaths(3);
+      inputFile >> terrainPaths[0];
+
+      if (terrainPaths[0] != "!")
+      {
+        inputFile >> terrainPaths[1];
+        inputFile >> terrainPaths[2];
+
+        terrain->loadTextures(terrainPaths);
       }
 
       inputFile >> mainMenu.useLightShader;
